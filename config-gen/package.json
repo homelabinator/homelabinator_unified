@@ -1,0 +1,31 @@
+{
+  "name": "homelabinator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node build.mjs",
+    "test:website": "http-server . -c-1 -o tests/integration/test_website/",
+    "test:vm": "nix-build '<nixpkgs/nixos>' -A vm -I nixpkgs=channel:nixos-25.11 -I nixos-config=./tests/integration/playground/config.nix && QEMU_KERNEL_PARAMS=console=ttyS0 ./result/bin/run-nixos-vm -nographic -m 8192 -smp 2; reset",
+    "test:vm:reset": "rm -f result nixos*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "dexie": "^4.3.0",
+    "esbuild": "^0.23.0",
+    "handlebars": "^4.7.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "glob": "^13.0.6",
+    "http-server": "^14.1.1",
+    "typescript": "^5.5.2"
+  }
+}

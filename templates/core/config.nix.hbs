@@ -1,0 +1,30 @@
+{ config, pkgs, ... }:
+
+{
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  virtualisation.diskSize = 16384;
+
+
+  users.users.alice = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
+    initialPassword = "test";
+  };
+
+  environment.systemPackages = with pkgs; [
+    cowsay
+    lolcat
+    k9s
+  ];
+
+  services.k3s.enable = true;
+  services.k3s.role = "server";
+
+  {{{apps}}}
+
+  {{{globalservices}}}
+
+  system.stateVersion = "25.11";
+}

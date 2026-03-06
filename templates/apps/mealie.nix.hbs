@@ -1,0 +1,74 @@
+services.k3s.manifests.{{app.name}}.content = [
+  {
+    apiVersion = "apps/v1";
+    kind = "Deployment";
+    metadata = {
+      name = "{{app.name}}";
+      labels.app = "{{app.name}}";
+    };
+    spec = {
+      replicas = 1;
+      selector.matchLabels.app = "{{app.name}}";
+      template = {
+        metadata.labels.app = "{{app.name}}";
+        spec = {
+          containers = [
+            {
+              name = "{{app.name}}";
+              image = "ghcr.io/mealie-recipes/mealie:v1.0.0-RC2";
+              env = [
+                { name = "ALLOW_SIGNUP"; value = "false"; }
+                { name = "PUID"; value = "1000"; }
+                { name = "PGID"; value = "1000"; }
+                { name = "TZ"; value = "Etc/UTC"; }
+              ];
+              ports = [
+                { containerPort = 9000; name = "http"; }
+              ];
+              volumeMounts = [
+                { name = "data"; mountPath = "/app/data"; }
+              ];
+            }
+          ];
+          volumes = [
+            {
+              name = "data";
+              hostPath = {
+                path = "/home/homelab/{{app.name}}/data";
+                type = "DirectoryOrCreate";
+              };
+            }
+          ];
+          tolerations = [
+            {
+              key = "node-role.kubernetes.io/master";
+              operator = "Exists";
+              effect = "NoSchedule";
+            }
+            {
+              key = "node-role.kubernetes.io/control-plane";
+              operator = "Exists";
+              effect = "NoSchedule";
+            }
+          ];
+        };
+      };
+    };
+  }
+  {
+    apiVersion = "v1";
+    kind = "Service";
+    metadata = {
+      name = "{{app.name}}-svc";
+      labels.app = "{{app.name}}";
+    };
+    spec = {
+      type = "ClusterIP";
+      selector.app = "{{app.name}}";
+      ports = [
+        { port = 9000; targetPort = 9000; name = "http"; }
+      ];
+    };
+  }
+  {{{services}}}
+];

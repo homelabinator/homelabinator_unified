@@ -1,0 +1,81 @@
+services.k3s.manifests.{{app.name}}.content = [
+  {
+    apiVersion = "apps/v1";
+    kind = "Deployment";
+    metadata = {
+      name = "{{app.name}}";
+      labels.app = "{{app.name}}";
+    };
+    spec = {
+      replicas = 1;
+      selector.matchLabels.app = "{{app.name}}";
+      template = {
+        metadata.labels.app = "{{app.name}}";
+        spec = {
+          containers = [
+            {
+              name = "{{app.name}}";
+              image = "deluan/navidrome:latest";
+              env = [
+                { name = "ND_MUSICFOLDER"; value = "/music"; }
+                { name = "ND_DATAFOLDER"; value = "/data"; }
+                { name = "TZ"; value = "Etc/UTC"; }
+              ];
+              ports = [
+                { containerPort = 4533; name = "http"; }
+              ];
+              volumeMounts = [
+                { name = "data"; mountPath = "/data"; }
+                { name = "music"; mountPath = "/music"; }
+              ];
+            }
+          ];
+          volumes = [
+            {
+              name = "data";
+              hostPath = {
+                path = "/home/homelab/{{app.name}}/data";
+                type = "DirectoryOrCreate";
+              };
+            }
+            {
+              name = "music";
+              hostPath = {
+                path = "/home/homelab/{{app.name}}/music";
+                type = "DirectoryOrCreate";
+              };
+            }
+          ];
+          tolerations = [
+            {
+              key = "node-role.kubernetes.io/master";
+              operator = "Exists";
+              effect = "NoSchedule";
+            }
+            {
+              key = "node-role.kubernetes.io/control-plane";
+              operator = "Exists";
+              effect = "NoSchedule";
+            }
+          ];
+        };
+      };
+    };
+  }
+  {
+    apiVersion = "v1";
+    kind = "Service";
+    metadata = {
+      name = "{{app.name}}-svc";
+      labels.app = "{{app.name}}";
+    };
+    spec = {
+      type = "ClusterIP";
+      selector.app = "{{app.name}}";
+      ports = [
+        { port = 4533; targetPort = 4533; name = "http"; }
+      ];
+    };
+  }
+  {{{services}}}
+];

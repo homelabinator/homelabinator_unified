@@ -1,0 +1,107 @@
+services.k3s.manifests.{{app.name}}.content = [
+  {
+    apiVersion = "apps/v1";
+    kind = "Deployment";
+    metadata = {
+      name = "{{app.name}}";
+      labels.app = "{{app.name}}";
+    };
+    spec = {
+      replicas = 1;
+      selector.matchLabels.app = "{{app.name}}";
+      template = {
+        metadata.labels.app = "{{app.name}}";
+        spec = {
+          containers = [
+            {
+              name = "immich-server";
+              image = "ghcr.io/immich-app/immich-server:release";
+              env = [
+                { name = "DB_HOSTNAME"; value = "localhost"; }
+                { name = "DB_USERNAME"; value = "immich"; }
+                { name = "DB_PASSWORD"; value = "immich"; }
+                { name = "DB_DATABASE_NAME"; value = "immich"; }
+                { name = "REDIS_HOSTNAME"; value = "localhost"; }
+                { name = "TZ"; value = "Etc/UTC"; }
+              ];
+              ports = [
+                { containerPort = 2283; name = "http"; }
+              ];
+              volumeMounts = [
+                { name = "config"; mountPath = "/config"; }
+                { name = "data"; mountPath = "/data"; }
+              ];
+            }
+            {
+              name = "redis";
+              image = "docker.io/valkey/valkey:9";
+            }
+            {
+              name = "postgres";
+              image = "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0";
+              env = [
+                { name = "POSTGRES_USER"; value = "immich"; }
+                { name = "POSTGRES_PASSWORD"; value = "immich"; }
+                { name = "POSTGRES_DB"; value = "immich"; }
+              ];
+              volumeMounts = [
+                { name = "pgdata"; mountPath = "/var/lib/postgresql/data"; }
+              ];
+            }
+          ];
+          volumes = [
+            {
+              name = "config";
+              hostPath = {
+                path = "/home/homelab/{{app.name}}/config";
+                type = "DirectoryOrCreate";
+              };
+            }
+            {
+              name = "data";
+              hostPath = {
+                path = "/home/homelab/{{app.name}}/data";
+                type = "DirectoryOrCreate";
+              };
+            }
+            {
+              name = "pgdata";
+              hostPath = {
+                path = "/home/homelab/{{app.name}}/postgres";
+                type = "DirectoryOrCreate";
+              };
+            }
+          ];
+          tolerations = [
+            {
+              key = "node-role.kubernetes.io/master";
+              operator = "Exists";
+              effect = "NoSchedule";
+            }
+            {
+              key = "node-role.kubernetes.io/control-plane";
+              operator = "Exists";
+              effect = "NoSchedule";
+            }
+          ];
+        };
+      };
+    };
+  }
+  {
+    apiVersion = "v1";
+    kind = "Service";
+    metadata = {
+      name = "{{app.name}}-svc";
+      labels.app = "{{app.name}}";
+    };
+    spec = {
+      type = "ClusterIP";
+      selector.app = "{{app.name}}";
+      ports = [
+        { port = 2283; targetPort = 2283; name = "http"; }
+      ];
+    };
+  }
+  {{{services}}}
+];

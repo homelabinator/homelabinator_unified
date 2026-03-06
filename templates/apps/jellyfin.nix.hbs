@@ -1,0 +1,84 @@
+services.k3s.manifests.{{app.name}}.content = [
+  {
+    apiVersion = "apps/v1";
+    kind = "Deployment";
+    metadata = {
+      name = "{{app.name}}";
+      labels.app = "{{app.name}}";
+    };
+    spec = {
+      replicas = 1;
+      selector.matchLabels.app = "{{app.name}}";
+      template = {
+        metadata.labels.app = "{{app.name}}";
+        spec = {
+          containers = [
+            {
+              name = "{{app.name}}";
+              image = "lscr.io/linuxserver/jellyfin:latest";
+              securityContext = {
+                privileged = true;
+              };
+              env = [
+                { name = "PUID"; value = "1000"; }
+                { name = "PGID"; value = "1000"; }
+                { name = "TZ"; value = "Etc/UTC"; }
+              ];
+              ports = [
+                { containerPort = 8096; name = "http"; }
+              ];
+              volumeMounts = [
+                { name = "config"; mountPath = "/config"; }
+                { name = "media"; mountPath = "/media"; }
+              ];
+            }
+          ];
+          volumes = [
+            {
+              name = "config";
+              hostPath = {
+                path = "/home/homelab/{{app.name}}/config";
+                type = "DirectoryOrCreate";
+              };
+            }
+            {
+              name = "media";
+              hostPath = {
+                path = "/home/homelab/{{app.name}}/media";
+                type = "DirectoryOrCreate";
+              };
+            }
+          ];
+          tolerations = [
+            {
+              key = "node-role.kubernetes.io/master";
+              operator = "Exists";
+              effect = "NoSchedule";
+            }
+            {
+              key = "node-role.kubernetes.io/control-plane";
+              operator = "Exists";
+              effect = "NoSchedule";
+            }
+          ];
+        };
+      };
+    };
+  }
+  {
+    apiVersion = "v1";
+    kind = "Service";
+    metadata = {
+      name = "{{app.name}}-svc";
+      labels.app = "{{app.name}}";
+    };
+    spec = {
+      type = "ClusterIP";
+      selector.app = "{{app.name}}";
+      ports = [
+        { port = 8096; targetPort = 8096; name = "http"; }
+      ];
+    };
+  }
+  {{{services}}}
+];
