@@ -6,10 +6,10 @@ import './style.css';
 
 export interface AppEntry {
     id?: number;
-    name: string; // This is the ID/slug (e.g., 'actual')
+    name: string; // slug
     title: string;
     handlebars_config: string;
-    installed: number; // 0 or 1
+    installed: number;
     category?: string;
     replaces?: string;
     tagline?: string;
@@ -17,27 +17,32 @@ export interface AppEntry {
     screenshots?: string[];
     icon_link?: string;
     website?: string;
-    docker_downloads?: number;
-    github_stars?: number;
     content: string;
-    services: ServiceEntry[];
-    volumes: VolumeEntry[];
+    hasTemplate: boolean;
+    services: string[]; // List of service names applied
+    volumes: string[];   // List of volume names applied
     fields: { [key: string]: any };
 }
 
 export interface ServiceEntry {
     id?: number;
     name: string;
+    title: string;
+    description: string;
     core_config: string;
     template_config: string;
-    fields: { [key: string]: any };
+    fields_def: any[]; // Definition of fields
+    fields: { [key: string]: any }; // Current values (for "Apply to All" or default)
 }
 
 export interface VolumeEntry {
     id?: number;
     name: string;
+    title: string;
+    description: string;
     core_config: string;
     template_config: string;
+    fields_def: any[];
     fields: { [key: string]: any };
 }
 
@@ -47,7 +52,7 @@ export class HomelabDatabase extends Dexie {
     volumes!: Table<VolumeEntry>;
 
     constructor() {
-        super('HomelabDatabase_Unified');
+        super('HomelabDatabase_V3');
         this.version(1).stores({
             apps: '&name, category, installed',
             services: '++id, &name',
@@ -78,108 +83,108 @@ export class AppStore {
         this.isInitializing = true;
 
         try {
-            // For development: clear database to ensure fresh data
-            await db.delete();
-            await db.open();
-            
-            const appCount = await db.apps.count();
-            if (appCount === 0) {
-                console.log('Populating database...');
-                
-                // 1. Fetch Manifests
-                // Note: We need the manifest from both backend templates and frontend content
-                // We'll use the JSON manifest we created earlier for the apps metadata
-                const response = await fetch('/src/data/apps/manifest.json');
-                const appIds = await response.json();
+            // Check if already populated
+            const count = await db.apps.count();
+            if (count > 0) return;
 
-                for (const appId of appIds) {
-                    // Fetch metadata (frontend content)
-                    const metaResponse = await fetch(`/src/data/apps/${appId}.json`);
-                    const metaData = await metaResponse.json();
+            // 1. Populate Apps
+            const response = await fetch('/src/data/apps/manifest.json');
+            const appIds = await response.json();
 
-                    // Fetch Nix template (backend config)
-                    let nixConfig = '';
+            for (const appId of appIds) {
+                const metaResponse = await fetch(`/src/data/apps/${appId}.json`);
+                const metaData = await metaResponse.json();
+
+                let nixConfig = '';
+                if (metaData.hasTemplate) {
                     try {
                         const nixResponse = await fetch(`/templates/apps/${appId}.nix.hbs`);
-                        if (nixResponse.ok) {
-                            nixConfig = await nixResponse.text();
-                        }
-                    } catch (e) {
-                        console.warn(`No Nix template for ${appId}`);
-                    }
-
-                    await db.apps.put({
-                        ...metaData,
-                        name: appId,
-                        handlebars_config: nixConfig,
-                        installed: 0,
-                        services: [],
-                        volumes: [],
-                        fields: {}
-                    });
+                        if (nixResponse.ok) nixConfig = await nixResponse.text();
+                    } catch (e) {}
                 }
 
-                // 2. Populate Services
-                // For simplicity, let's hardcode the ones we saw in the structure
-                // In a real scenario, we'd fetch a manifest for these too
-                try {
-                    const tailscaleCore = await (await fetch('/templates/services/tailscale/core.nix.hbs')).text();
-                    const tailscaleTemplate = await (await fetch('/templates/services/tailscale/template.nix.hbs')).text();
-                    await db.services.add({
-                        name: 'tailscale',
-                        core_config: tailscaleCore,
-                        template_config: tailscaleTemplate,
-                        fields: {}
-                    });
-                } catch(e) {}
-
-                // 3. Populate Volumes
-                try {
-                    const configCore = await (await fetch('/templates/volumes/config/core.nix.hbs')).text();
-                    const configTemplate = await (await fetch('/templates/volumes/config/template.nix.hbs')).text();
-                    await db.volumes.add({
-                        name: 'config',
-                        core_config: configCore,
-                        template_config: configTemplate,
-                        fields: { path: '/var/lib/homelabinator' }
-                    });
-                } catch(e) {}
+                await db.apps.put({
+                    ...metaData,
+                    name: appId,
+                    handlebars_config: nixConfig,
+                    installed: 0,
+                    services: [],
+                    volumes: [],
+                    fields: {}
+                });
             }
+
+            // 2. Populate Services
+            const servicesResponse = await fetch('/src/data/services.json');
+            const servicesData = await servicesResponse.json();
+            for (const s of servicesData) {
+                let core = '', tmpl = '';
+                try {
+                    core = await (await fetch(`/templates/services/${s.name}/core.nix.hbs`)).text();
+                    tmpl = await (await fetch(`/templates/services/${s.name}/template.nix.hbs`)).text();
+                } catch(e) {}
+                await db.services.put({ 
+                    ...s, 
+                    core_config: core, 
+                    template_config: tmpl, 
+                    fields: {},
+                    fields_def: s.fields // Map fields from JSON to fields_def
+                });
+            }
+
+            // 3. Populate Volumes
+            const volumesResponse = await fetch('/src/data/volumes.json');
+            const volumesData = await volumesResponse.json();
+            for (const v of volumesData) {
+                let core = '', tmpl = '';
+                try {
+                    core = await (await fetch(`/templates/volumes/${v.name}/core.nix.hbs`)).text();
+                    tmpl = await (await fetch(`/templates/volumes/${v.name}/template.nix.hbs`)).text();
+                } catch(e) {}
+                await db.volumes.put({ 
+                    ...v, 
+                    core_config: core, 
+                    template_config: tmpl, 
+                    fields: { path: '/var/lib/homelabinator' },
+                    fields_def: v.fields // Map fields from JSON to fields_def
+                });
+            }
+
         } finally {
             this.isInitializing = false;
         }
     }
 
     async setAppInstalled(name: string, installed: boolean) {
-        const app = await db.apps.get({ name });
-        if (app) {
-            await db.apps.update(app.id!, { installed: installed ? 1 : 0 });
-        }
+        await db.apps.update(name, { installed: installed ? 1 : 0 });
     }
 
     async generateConfig(): Promise<string> {
         const installedApps = await db.apps.where('installed').equals(1).toArray();
-        const coreTemplateResponse = await fetch('/templates/core/config.nix.hbs');
-        const coreTemplate = await coreTemplateResponse.text();
+        const coreTemplate = await (await fetch('/templates/core/config.nix.hbs')).text();
+        const allServices = await db.services.toArray();
+        const allVolumes = await db.volumes.toArray();
 
         let appsConfig = '';
         let globalServicesConfig = '';
 
         for (const app of installedApps) {
             let servicesConfig = '';
-            // Default services for all apps if none specified? 
-            // The original logic seemed to allow adding them manually.
-            // Let's add 'tailscale' and 'config' volume if they exist in the app's arrays
-            
-            for (const service of app.services) {
-                const template = Handlebars.compile(service.template_config);
-                servicesConfig += template({ app: { name: app.name, port: 8080 }, fields: service.fields });
+            for (const sName of app.services) {
+                const s = allServices.find(x => x.name === sName);
+                if (s) {
+                    const template = Handlebars.compile(s.template_config);
+                    servicesConfig += template({ app: { name: app.name, port: 8080 }, fields: { ...s.fields, ...app.fields[sName] } });
+                }
             }
 
             let volumesConfig = '';
-            for (const volume of app.volumes) {
-                const template = Handlebars.compile(volume.template_config);
-                volumesConfig += template({ app: { name: app.name }, fields: volume.fields });
+            for (const vName of app.volumes) {
+                const v = allVolumes.find(x => x.name === vName);
+                if (v) {
+                    const template = Handlebars.compile(v.template_config);
+                    volumesConfig += template({ app: { name: app.name }, fields: { ...v.fields, ...app.fields[vName] } });
+                }
             }
 
             if (app.handlebars_config) {
@@ -188,29 +193,37 @@ export class AppStore {
             }
         }
 
-        const allServices = await db.services.toArray();
-        for (const service of allServices) {
-            if (service.core_config && service.core_config.trim() !== '') {
-                const template = Handlebars.compile(service.core_config);
-                globalServicesConfig += template({ fields: service.fields });
+        for (const s of allServices) {
+            if (s.core_config && s.core_config.trim() !== '') {
+                const template = Handlebars.compile(s.core_config);
+                globalServicesConfig += template({ fields: s.fields });
             }
         }
 
-        const finalTemplate = Handlebars.compile(coreTemplate);
-        return finalTemplate({ apps: appsConfig, globalservices: globalServicesConfig });
+        return Handlebars.compile(coreTemplate)({ apps: appsConfig, globalservices: globalServicesConfig });
     }
 }
 
 const appStore = AppStore.getInstance();
 
-// --- UI Logic ---
+// --- Routing & UI State ---
 
-async function renderApps(filter = '') {
-    const appGrid = document.getElementById('app-grid');
+type Page = 'apps' | 'services' | 'install';
+let currentPage: Page = 'apps';
+
+function setPage(page: Page) {
+    currentPage = page;
+    render();
+    window.scrollTo(0, 0);
+}
+
+// --- Page Renderers ---
+
+async function renderAppsPage(filter = '') {
+    const appGrid = document.getElementById('main-content');
     if (!appGrid) return;
 
     let apps = await db.apps.toArray();
-    
     if (filter) {
         const query = filter.toLowerCase();
         apps = apps.filter(app => 
@@ -220,7 +233,6 @@ async function renderApps(filter = '') {
         );
     }
 
-    // Group by category to match original style
     const categories: { [key: string]: AppEntry[] } = {};
     apps.forEach(app => {
         const cat = app.category || 'Other';
@@ -228,114 +240,272 @@ async function renderApps(filter = '') {
         categories[cat].push(app);
     });
 
-    if (apps.length === 0) {
-        appGrid.innerHTML = `<div class="col-span-full text-center py-20 opacity-50 text-2xl">No apps found matching "${filter}"</div>`;
-        return;
-    }
-
-    appGrid.innerHTML = Object.entries(categories).map(([category, catApps]) => `
-        <div class="col-span-full mb-12">
-            <div class="inline-block bg-primary text-primary-content px-8 py-2 rounded-t-[30px] mb-[-1px]">
-                <h2 class="text-2xl font-mono uppercase font-bold">${category}</h2>
-            </div>
-            <div class="bg-primary p-4 rounded-r-[50px] rounded-bl-[50px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-                ${catApps.map(app => `
-                    <div class="app-card bg-[#f4f4f4a6] rounded-[30px] p-6 text-center flex flex-col h-full relative">
-                        <div class="absolute top-4 right-4 cursor-pointer" onclick="window.showDetails('${app.name}')">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 opacity-50 hover:opacity-100 transition-opacity">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-                            </svg>
-                        </div>
-                        <div class="w-[110px] h-[110px] bg-black rounded-[23px] mx-auto mb-4 flex items-center justify-center overflow-hidden p-[5%]">
-                            <img src="${app.icon_link || 'https://picsum.photos/200/300'}" alt="${app.title}" class="w-full h-full object-contain" />
-                        </div>
-                        <h3 class="text-3xl font-normal mb-1">${app.title}</h3>
-                        <p class="text-xl mb-1">${app.tagline || ''}</p>
-                        <p class="text-lg italic mb-4 h-12 overflow-hidden">${app.replaces ? `Replaces: ${app.replaces}` : ''}</p>
-                        
-                        <button 
-                            onclick="window.toggleApp('${app.name}')"
-                            class="mt-auto w-full py-3 rounded-[20px] text-2xl font-sans border-[5px] transition-all duration-200 ${app.installed ? 'bg-black border-black text-white opacity-30' : 'bg-[#efeef6] border-[#0088ff] text-[#0088ff]'}"
-                        >
-                            ${app.installed ? 'Added' : 'Add'}
-                        </button>
+    appGrid.innerHTML = `
+        <div class="text-center py-20 px-5">
+            <h1 class="text-[96px] font-bold m-0 leading-tight">Homelabinator</h1>
+            <p class="text-5xl font-light mt-2.5">Self-Host with Ease</p>
+        </div>
+        <div class="max-w-[1600px] mx-auto px-8 mb-20">
+            ${Object.entries(categories).map(([category, catApps]) => `
+                <div class="col-span-full mb-12">
+                    <div class="inline-block bg-[#0088ff] text-white px-8 py-2 rounded-t-[30px] mb-[-1px]">
+                        <h2 class="text-2xl font-mono uppercase font-bold">${category}</h2>
                     </div>
-                `).join('')}
+                    <div class="bg-[#0088ff] p-4 rounded-r-[50px] rounded-bl-[50px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                        ${catApps.map(app => `
+                            <div class="bg-[#f4f4f4a6] rounded-[30px] p-6 text-center flex flex-col h-full relative">
+                                <div class="absolute top-4 right-4 cursor-pointer" onclick="window.showDetails('${app.name}')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 opacity-50">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                                    </svg>
+                                </div>
+                                <div class="w-[110px] h-[110px] bg-black rounded-[23px] mx-auto mb-4 flex items-center justify-center overflow-hidden p-2">
+                                    <img src="${app.icon_link || 'https://picsum.photos/110/110'}" class="w-full h-full object-contain" />
+                                </div>
+                                <h3 class="text-3xl font-normal mb-1">${app.title}</h3>
+                                <p class="text-xl mb-1">${app.tagline || ''}</p>
+                                <p class="text-lg italic mb-4 h-12 overflow-hidden">${app.replaces ? `Replaces: ${app.replaces}` : ''}</p>
+                                
+                                <button 
+                                    ${app.hasTemplate ? `onclick="window.toggleApp('${app.name}')"` : 'disabled'}
+                                    class="mt-auto w-full py-3 rounded-[20px] text-2xl font-sans border-[5px] transition-all duration-200 ${!app.hasTemplate ? 'bg-gray-200 border-gray-400 text-gray-500 cursor-not-allowed' : app.installed ? 'bg-black border-black text-white opacity-30' : 'bg-[#efeef6] border-[#0088ff] text-[#0088ff]'}"
+                                >
+                                    ${!app.hasTemplate ? 'TBD' : app.installed ? 'Added' : 'Add'}
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    updateOverlay();
+}
+
+async function renderServicesPage() {
+    const content = document.getElementById('main-content');
+    if (!content) return;
+
+    const services = await db.services.toArray();
+    const volumes = await db.volumes.toArray();
+    const installedApps = await db.apps.where('installed').equals(1).toArray();
+
+    content.innerHTML = `
+        <div class="max-w-6xl mx-auto px-8 py-20">
+            <h1 class="text-6xl font-bold mb-12">Services & Volumes</h1>
+            
+            <div class="space-y-16">
+                <section>
+                    <h2 class="text-4xl font-bold mb-8 text-[#0088ff]">Global Services</h2>
+                    <div class="space-y-8">
+                        ${services.map(s => renderServiceVolumeCard(s, 'service', installedApps)).join('')}
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-4xl font-bold mb-8 text-[#0088ff]">Volumes</h2>
+                    <div class="space-y-8">
+                        ${volumes.map(v => renderServiceVolumeCard(v, 'volume', installedApps)).join('')}
+                    </div>
+                </section>
             </div>
         </div>
-    `).join('');
-
-    updateNextButton();
+    `;
+    updateOverlay();
 }
 
-async function updateNextButton() {
-    const installedCount = await db.apps.where('installed').equals(1).count();
-    const nextBtn = document.getElementById('next-button-container');
-    if (nextBtn) {
-        if (installedCount > 0) {
-            nextBtn.classList.remove('hidden');
-        } else {
-            nextBtn.classList.add('hidden');
-        }
-    }
+function renderServiceVolumeCard(item: any, type: 'service' | 'volume', installedApps: AppEntry[]) {
+    return `
+        <div class="bg-white border-[5px] border-black rounded-[30px] p-8 shadow-xl">
+            <div class="flex flex-col lg:flex-row justify-between items-start gap-8">
+                <div class="flex-1">
+                    <h3 class="text-4xl font-bold mb-2">${item.title}</h3>
+                    <p class="text-2xl text-gray-600 mb-6">${item.description}</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${item.fields_def.map((f: any) => `
+                            <div class="form-control">
+                                <label class="label"><span class="label-text text-xl font-bold">${f.label}</span></label>
+                                <input type="${f.type}" value="${item.fields[f.name] || ''}" onchange="window.updateField('${type}', '${item.name}', '${f.name}', this.value)" placeholder="${f.placeholder}" class="input input-bordered input-lg border-2 border-black rounded-xl" />
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-auto flex flex-col gap-4">
+                    <button onclick="window.applyAll('${type}', '${item.name}')" class="btn btn-lg bg-[#efeef6] border-[#0088ff] text-[#0088ff] border-[4px] rounded-xl text-xl">Apply to All</button>
+                    <button onclick="window.deapplyAll('${type}', '${item.name}')" class="btn btn-lg bg-white border-gray-400 text-gray-500 border-[4px] rounded-xl text-xl">Deapply All</button>
+                    
+                    <div class="dropdown dropdown-end w-full">
+                        <button tabindex="0" class="btn btn-lg bg-black text-white w-full border-none rounded-xl text-xl">Custom</button>
+                        <ul tabindex="0" class="dropdown-content z-[1] menu p-4 shadow-2xl bg-base-100 rounded-box w-80 border-2 border-black mt-2">
+                            <li class="menu-title text-black text-lg">Select Apps</li>
+                            ${installedApps.map(app => `
+                                <li>
+                                    <label class="flex justify-between items-center py-3">
+                                        <span class="text-lg">${app.title}</span>
+                                        <input type="checkbox" class="checkbox checkbox-primary border-2" 
+                                            ${(type === 'service' ? app.services : app.volumes).includes(item.name) ? 'checked' : ''} 
+                                            onchange="window.toggleCustom('${type}', '${item.name}', '${app.name}', this.checked)" />
+                                    </label>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
 }
+
+async function renderInstallPage() {
+    const content = document.getElementById('main-content');
+    if (!content) return;
+
+    content.innerHTML = `
+        <div class="max-w-4xl mx-auto px-8 py-20 space-y-20">
+            <h1 class="text-6xl font-bold text-center mb-16">Final Steps</h1>
+            
+            <div class="space-y-12">
+                <div class="flex gap-8 items-start">
+                    <div class="w-20 h-20 bg-[#0088ff] text-white rounded-full flex items-center justify-center text-4xl font-bold shrink-0">1</div>
+                    <div>
+                        <h3 class="text-4xl font-bold mb-4">Review Configuration</h3>
+                        <p class="text-2xl text-gray-600">Ensure all your apps, services, and volumes are configured correctly.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-8 items-start">
+                    <div class="w-20 h-20 bg-[#0088ff] text-white rounded-full flex items-center justify-center text-4xl font-bold shrink-0">2</div>
+                    <div class="flex-1">
+                        <h3 class="text-4xl font-bold mb-4">Download Config</h3>
+                        <p class="text-2xl text-gray-600 mb-6">Get your Nix configuration file for manual installation.</p>
+                        <button onclick="window.downloadConfig()" class="btn btn-lg bg-[#efeef6] border-[#0088ff] text-[#0088ff] border-[4px] rounded-xl px-10">Download config.nix</button>
+                    </div>
+                </div>
+
+                <div class="flex gap-8 items-start">
+                    <div class="w-20 h-20 bg-[#0088ff] text-white rounded-full flex items-center justify-center text-4xl font-bold shrink-0">3</div>
+                    <div class="flex-1">
+                        <h3 class="text-4xl font-bold mb-4">Generate ISO</h3>
+                        <p class="text-2xl text-gray-600 mb-6">Build a custom bootable image with everything pre-configured.</p>
+                        <button onclick="window.generateISO()" id="iso-btn" class="btn btn-lg bg-[#0088ff] text-white border-none rounded-xl px-10">Create Custom ISO</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    updateOverlay();
+}
+
+// --- Global Actions ---
 
 (window as any).toggleApp = async (name: string) => {
     const app = await db.apps.get({ name });
-    if (app) {
+    if (app && app.hasTemplate) {
         await appStore.setAppInstalled(name, !app.installed);
-        await renderApps((document.getElementById('app-search') as HTMLInputElement)?.value);
+        render();
     }
+};
+
+(window as any).updateField = async (type: string, itemName: string, fieldName: string, value: string) => {
+    if (type === 'service') {
+        const s = await db.services.get({ name: itemName });
+        if (s) {
+            s.fields[fieldName] = value;
+            await db.services.put(s);
+        }
+    } else {
+        const v = await db.volumes.get({ name: itemName });
+        if (v) {
+            v.fields[fieldName] = value;
+            await db.volumes.put(v);
+        }
+    }
+};
+
+(window as any).applyAll = async (type: string, itemName: string) => {
+    const apps = await db.apps.where('installed').equals(1).toArray();
+    for (const app of apps) {
+        const list = type === 'service' ? app.services : app.volumes;
+        if (!list.includes(itemName)) list.push(itemName);
+        await db.apps.put(app);
+    }
+    render();
+};
+
+(window as any).deapplyAll = async (type: string, itemName: string) => {
+    const apps = await db.apps.toArray();
+    for (const app of apps) {
+        const list = type === 'service' ? app.services : app.volumes;
+        const idx = list.indexOf(itemName);
+        if (idx > -1) list.splice(idx, 1);
+        await db.apps.put(app);
+    }
+    render();
+};
+
+(window as any).toggleCustom = async (type: string, itemName: string, appName: string, checked: boolean) => {
+    const app = await db.apps.get({ name: appName });
+    if (app) {
+        const list = type === 'service' ? app.services : app.volumes;
+        if (checked && !list.includes(itemName)) list.push(itemName);
+        if (!checked) {
+            const idx = list.indexOf(itemName);
+            if (idx > -1) list.splice(idx, 1);
+        }
+        await db.apps.put(app);
+    }
+};
+
+(window as any).downloadConfig = async () => {
+    const config = await appStore.generateConfig();
+    const blob = new Blob([config], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'config.nix';
+    a.click();
+};
+
+(window as any).generateISO = async () => {
+    const btn = document.getElementById('iso-btn') as HTMLButtonElement;
+    btn.innerHTML = '<span class="loading loading-spinner"></span> Building...';
+    btn.disabled = true;
+    setTimeout(() => {
+        alert("ISO generation started! You'll be notified when it's ready.");
+        btn.innerHTML = 'Create Custom ISO';
+        btn.disabled = false;
+    }, 3000);
 };
 
 (window as any).showDetails = async (name: string) => {
     const app = await db.apps.get({ name });
     if (!app) return;
-    
     const modal = document.getElementById('app-modal') as HTMLDialogElement;
-    const modalContent = document.getElementById('modal-content');
-    if (!modal || !modalContent) return;
+    const content = document.getElementById('modal-content');
+    if (!modal || !content) return;
 
-    modalContent.innerHTML = `
+    content.innerHTML = `
         <div class="bg-white border-[5px] border-black rounded-[23px] p-10 flex flex-col lg:flex-row gap-10 max-w-6xl w-full relative">
-            <form method="dialog">
-                <button class="absolute top-5 right-5 w-12 h-12 bg-white border-2 border-black rounded-full flex items-center justify-center text-2xl hover:bg-gray-100">✕</button>
-            </form>
-            
+            <form method="dialog"><button class="absolute top-5 right-5 w-12 h-12 bg-white border-2 border-black rounded-full flex items-center justify-center text-2xl">✕</button></form>
             <div class="flex-1">
                 <div class="flex items-center gap-8 mb-10">
                     <div class="w-[120px] h-[120px] bg-black rounded-[23px] flex items-center justify-center overflow-hidden p-4">
-                        <img src="${app.icon_link || 'https://picsum.photos/200/300'}" alt="${app.title}" class="w-full h-full object-contain" />
+                        <img src="${app.icon_link || 'https://picsum.photos/120/120'}" class="w-full h-full object-contain" />
                     </div>
                     <h1 class="text-7xl lg:text-8xl font-bold">${app.title}</h1>
                 </div>
-                
                 <p class="text-3xl lg:text-4xl leading-snug mb-6">${app.tagline || ''}</p>
-                <div class="prose prose-xl max-w-none mb-10 text-gray-700">
-                    ${app.content}
-                </div>
-                
-                <div class="bg-[#d9d9d9] p-6 rounded-[23px]">
-                    <div class="flex flex-wrap gap-4 mt-4">
-                        <a href="${app.website || '#'}" target="_blank" class="flex items-center gap-2 bg-[#efeef6] border-2 border-[#0088ff] text-[#0088ff] px-6 py-2 rounded-xl text-xl font-medium">
-                            Website
-                        </a>
-                        <a href="${app.docs_link || '#'}" target="_blank" class="flex items-center gap-2 bg-[#efeef6] border-2 border-[#0088ff] text-[#0088ff] px-6 py-2 rounded-xl text-xl font-medium">
-                            Docs
-                        </a>
-                    </div>
+                <div class="prose prose-xl max-w-none mb-10 text-gray-700">${app.content}</div>
+                <div class="flex flex-wrap gap-4">
+                    <a href="${app.website || '#'}" target="_blank" class="btn btn-lg bg-[#efeef6] border-[#0088ff] text-[#0088ff]">Website</a>
                 </div>
             </div>
-            
-            <div class="lg:w-[400px] flex flex-col gap-6">
-                <div class="aspect-video w-full rounded-[23px] overflow-hidden bg-gray-200">
-                    <img src="${app.screenshots?.[0] || 'https://picsum.photos/800/600'}" class="w-full h-full object-cover" />
-                </div>
-                <button 
-                    onclick="window.toggleApp('${app.name}'); (document.getElementById('app-modal') as any).close()"
-                    class="w-full py-4 rounded-[20px] text-3xl font-bold border-[5px] transition-all duration-200 ${app.installed ? 'bg-black border-black text-white opacity-30' : 'bg-[#efeef6] border-[#0088ff] text-[#0088ff]'}"
-                >
-                    ${app.installed ? 'Added' : 'Add App'}
+            <div class="lg:w-[400px]">
+                <img src="${app.screenshots?.[0] || 'https://picsum.photos/800/600'}" class="rounded-[23px] mb-6 shadow-lg" />
+                <button onclick="window.toggleApp('${app.name}'); (document.getElementById('app-modal') as any).close()" class="btn btn-lg w-full h-20 text-3xl ${!app.hasTemplate ? 'btn-disabled' : app.installed ? 'bg-black text-white opacity-30' : 'bg-[#efeef6] border-[#0088ff] text-[#0088ff] border-[4px]'}">
+                    ${!app.hasTemplate ? 'TBD' : app.installed ? 'Added' : 'Add App'}
                 </button>
             </div>
         </div>
@@ -343,23 +513,37 @@ async function updateNextButton() {
     modal.showModal();
 };
 
-(window as any).goToInstall = async () => {
-    // Hide main view, show install view (simulated)
-    const config = await appStore.generateConfig();
-    console.log("Generated Nix Config:\n", config);
-    alert("Configuration generated! Check console for output. (In a real app, this would redirect to the install page)");
+(window as any).navigateNext = () => {
+    if (currentPage === 'apps') setPage('services');
+    else if (currentPage === 'services') setPage('install');
 };
+
+function updateOverlay() {
+    const nextBtn = document.getElementById('next-button-container');
+    if (!nextBtn) return;
+    if (currentPage === 'install') {
+        nextBtn.classList.add('hidden');
+    } else {
+        db.apps.where('installed').equals(1).count().then(count => {
+            if (count > 0) nextBtn.classList.remove('hidden');
+            else nextBtn.classList.add('hidden');
+        });
+    }
+}
+
+async function render() {
+    if (currentPage === 'apps') await renderAppsPage((document.getElementById('app-search') as HTMLInputElement)?.value || '');
+    else if (currentPage === 'services') await renderServicesPage();
+    else if (currentPage === 'install') await renderInstallPage();
+}
 
 async function start() {
     await appStore.init();
-    await renderApps();
+    await render();
 
-    const searchInput = document.getElementById('app-search');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            renderApps((e.target as HTMLInputElement).value);
-        });
-    }
+    document.getElementById('app-search')?.addEventListener('input', (e) => {
+        if (currentPage === 'apps') renderAppsPage((e.target as HTMLInputElement).value);
+    });
 }
 
 window.addEventListener('DOMContentLoaded', start);

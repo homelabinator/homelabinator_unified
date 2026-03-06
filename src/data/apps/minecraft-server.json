@@ -14,5 +14,6 @@
   "docker_downloads": 100000000,
   "github_stars": 11900,
   "content": "Paper is the most widely used, high performance Minecraft server that aims to fix gameplay and mechanics inconsistencies. Designed to greatly improve performance, it offers a blazing fast, rock-solid foundation for your multiplayer world with more advanced features and a robust API.",
-  "id": "minecraft-server"
+  "id": "minecraft-server",
+  "hasTemplate": false
 }

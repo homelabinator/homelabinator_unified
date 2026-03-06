@@ -14,5 +14,6 @@
   "github_stars": 19500,
   "docs_link": "https://navidrome.org/docs/",
   "content": "Navidrome is a self-hosted music server that lets you listen to your own music collection, wherever you are.",
-  "id": "navidrome"
+  "id": "navidrome",
+  "hasTemplate": true
 }

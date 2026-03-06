@@ -14,5 +14,6 @@
   "docker_downloads": 5000000,
   "github_stars": 12500,
   "content": "wallabag is a self hostable application for saving web pages: Save and classify articles. Read them later. Freely. It extracts content so that you won't be distracted by pop-ups and clunky layouts.",
-  "id": "wallabag"
+  "id": "wallabag",
+  "hasTemplate": false
 }

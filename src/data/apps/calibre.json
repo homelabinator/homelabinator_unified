@@ -14,5 +14,6 @@
   "docker_downloads": 50000000,
   "github_stars": 24200,
   "content": "Calibre is a powerful and easy to use e-book manager. Users say it's outstanding and a must-have. It'll allow you to do nearly everything and it takes things a step beyond normal e-book software.",
-  "id": "calibre"
+  "id": "calibre",
+  "hasTemplate": true
 }

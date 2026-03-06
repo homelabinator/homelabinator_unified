@@ -14,5 +14,6 @@
   "docker_downloads": 5000000,
   "github_stars": 15000,
   "content": "Actual Budget is a super fast and privacy-focused app for managing your finances. At its heart is the well proven and much loved Envelope Budgeting methodology. You own your data and can do whatever you want with it.",
-  "id": "actual"
+  "id": "actual",
+  "hasTemplate": false
 }

@@ -14,5 +14,6 @@
   "github_stars": 48500,
   "docs_link": "https://docs.invidious.io/",
   "content": "Invidious is an open source alternative front-end to YouTube.",
-  "id": "invidious"
+  "id": "invidious",
+  "hasTemplate": false
 }

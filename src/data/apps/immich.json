@@ -14,5 +14,6 @@
   "github_stars": 30000,
   "docs_link": "https://docs.immich.app",
   "content": "Easily back up, organize, and manage your photos on your own server. Immich helps you browse, search and organize your photos and videos with ease, without sacrificing your privacy.",
-  "id": "immich"
+  "id": "immich",
+  "hasTemplate": true
 }

@@ -14,5 +14,6 @@
   "docker_downloads": 500000000,
   "github_stars": 55800,
   "content": "An alternative implementation of the Bitwarden server API, written in Rust and compatible with upstream Bitwarden clients, perfect for self-hosted deployment where running the official resource-heavy service might not be ideal.",
-  "id": "vaultwaren"
+  "id": "vaultwaren",
+  "hasTemplate": false
 }

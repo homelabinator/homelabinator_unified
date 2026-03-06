@@ -14,5 +14,6 @@
   "github_stars": 91000,
   "docs_link": "https://docs.nextcloud.com/",
   "content": "Nextcloud offers a modern, on-premises content collaboration platform with real-time document editing, video chat & groupware on mobile, desktop and web.",
-  "id": "nextcloud"
+  "id": "nextcloud",
+  "hasTemplate": false
 }

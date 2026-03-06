@@ -14,5 +14,6 @@
   "docker_downloads": 1000000,
   "github_stars": 0,
   "content": "Forgejo is a self-hosted lightweight software forge. Easy to install and low maintenance, it just does the job. Brought to you by an inclusive community.",
-  "id": "forgejo"
+  "id": "forgejo",
+  "hasTemplate": true
 }
