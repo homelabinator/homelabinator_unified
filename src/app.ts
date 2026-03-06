@@ -210,6 +210,21 @@ const appStore = AppStore.getInstance();
 
 type Page = 'apps' | 'services' | 'install';
 let currentPage: Page = 'apps';
+let expandedSections: Set<string> = new Set();
+let globalExpanded = false;
+
+const categoryColors: { [key: string]: string } = {
+    'Utility': '#b0e6c3',
+    'Media': '#bfbeff',
+    'Communication': '#ee5a62',
+    'Network': '#ffe082',
+    'Security': '#ffab91',
+    'Other': '#e1bee7'
+};
+
+function getCategoryColor(cat: string) {
+    return categoryColors[cat] || categoryColors['Other'];
+}
 
 function setPage(page: Page) {
     currentPage = page;
@@ -240,43 +255,71 @@ async function renderAppsPage(filter = '') {
         categories[cat].push(app);
     });
 
+    const anyCanExpand = Object.values(categories).some(list => list.length > 5);
+
     appGrid.innerHTML = `
         <div class="text-center py-20 px-5">
             <h1 class="text-[96px] font-bold m-0 leading-tight">Homelabinator</h1>
             <p class="text-5xl font-light mt-2.5">Self-Host with Ease</p>
         </div>
-        <div class="max-w-[1600px] mx-auto px-8 mb-20">
-            ${Object.entries(categories).map(([category, catApps]) => `
-                <div class="col-span-full mb-12">
-                    <div class="inline-block bg-[#0088ff] text-white px-8 py-2 rounded-t-[30px] mb-[-1px]">
-                        <h2 class="text-2xl font-mono uppercase font-bold">${category}</h2>
+
+        <div class="max-w-[1600px] mx-auto px-8 mb-8 flex justify-end">
+            ${anyCanExpand ? `
+                <button onclick="window.toggleGlobalExpand()" class="btn btn-ghost text-xl border-2 border-black rounded-xl px-6">
+                    ${globalExpanded ? 'Collapse All' : 'Expand All'}
+                </button>
+            ` : ''}
+        </div>
+
+        <div class="max-w-[1600px] mx-auto px-8 mb-20 space-y-20">
+            ${Object.entries(categories).map(([category, catApps]) => {
+                const color = getCategoryColor(category);
+                const isExpanded = globalExpanded || expandedSections.has(category);
+                const displayApps = isExpanded ? catApps : catApps.slice(0, 5);
+                const hasMore = catApps.length > 5;
+
+                return `
+                <div class="category-section">
+                    <div class="inline-block px-10 py-3 rounded-t-[40px] mb-[-1px]" style="background-color: ${color}">
+                        <h2 class="text-3xl font-mono uppercase font-black text-white drop-shadow-sm">${category}</h2>
                     </div>
-                    <div class="bg-[#0088ff] p-4 rounded-r-[50px] rounded-bl-[50px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-                        ${catApps.map(app => `
-                            <div class="bg-[#f4f4f4a6] rounded-[30px] p-6 text-center flex flex-col h-full relative">
-                                <div class="absolute top-4 right-4 cursor-pointer" onclick="window.showDetails('${app.name}')">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 opacity-50">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-                                    </svg>
+                    <div class="p-8 rounded-r-[60px] rounded-bl-[60px] shadow-sm relative" style="background-color: ${color}">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
+                            ${displayApps.map(app => `
+                                <div class="bg-white/80 backdrop-blur-sm rounded-[35px] p-8 text-center flex flex-col h-full relative border-2 border-transparent hover:border-white transition-all shadow-lg hover:shadow-2xl group">
+                                    <div class="absolute top-5 right-5 cursor-pointer opacity-30 group-hover:opacity-100 transition-opacity" onclick="window.showDetails('${app.name}')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                                        </svg>
+                                    </div>
+                                    <div class="w-[120px] h-[120px] bg-black rounded-[28px] mx-auto mb-6 flex items-center justify-center overflow-hidden p-3 shadow-xl">
+                                        <img src="${app.icon_link || 'https://picsum.photos/120/120'}" class="w-full h-full object-contain" />
+                                    </div>
+                                    <h3 class="text-3xl font-bold mb-2">${app.title}</h3>
+                                    <p class="text-xl mb-2 opacity-80 leading-tight h-12 overflow-hidden">${app.tagline || ''}</p>
+                                    <p class="text-lg italic mb-6 opacity-60 h-14 overflow-hidden">${app.replaces ? `Replaces: ${app.replaces}` : ''}</p>
+                                    
+                                    <button 
+                                        ${app.hasTemplate ? `onclick="window.toggleApp('${app.name}')"` : 'disabled'}
+                                        class="mt-auto w-full py-4 rounded-[22px] text-2xl font-bold border-[5px] transition-all duration-300 ${!app.hasTemplate ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed' : app.installed ? 'bg-black border-black text-white scale-[0.98] opacity-40' : 'bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl'}"
+                                    >
+                                        ${!app.hasTemplate ? 'TBD' : app.installed ? 'Added' : 'Add'}
+                                    </button>
                                 </div>
-                                <div class="w-[110px] h-[110px] bg-black rounded-[23px] mx-auto mb-4 flex items-center justify-center overflow-hidden p-2">
-                                    <img src="${app.icon_link || 'https://picsum.photos/110/110'}" class="w-full h-full object-contain" />
-                                </div>
-                                <h3 class="text-3xl font-normal mb-1">${app.title}</h3>
-                                <p class="text-xl mb-1">${app.tagline || ''}</p>
-                                <p class="text-lg italic mb-4 h-12 overflow-hidden">${app.replaces ? `Replaces: ${app.replaces}` : ''}</p>
-                                
-                                <button 
-                                    ${app.hasTemplate ? `onclick="window.toggleApp('${app.name}')"` : 'disabled'}
-                                    class="mt-auto w-full py-3 rounded-[20px] text-2xl font-sans border-[5px] transition-all duration-200 ${!app.hasTemplate ? 'bg-gray-200 border-gray-400 text-gray-500 cursor-not-allowed' : app.installed ? 'bg-black border-black text-white opacity-30' : 'bg-[#efeef6] border-[#0088ff] text-[#0088ff]'}"
-                                >
-                                    ${!app.hasTemplate ? 'TBD' : app.installed ? 'Added' : 'Add'}
+                            `).join('')}
+                        </div>
+                        
+                        ${hasMore ? `
+                            <div class="flex justify-center mt-10">
+                                <button onclick="window.toggleSection('${category}')" class="bg-white/90 backdrop-blur-sm border-[4px] border-white text-gray-800 font-bold py-3 px-12 rounded-[25px] text-2xl shadow-lg hover:scale-105 transition-transform">
+                                    ${isExpanded ? 'Show Less' : 'Show More'}
                                 </button>
                             </div>
-                        `).join('')}
+                        ` : ''}
                     </div>
                 </div>
-            `).join('')}
+                `;
+            }).join('')}
         </div>
     `;
     updateOverlay();
@@ -399,6 +442,18 @@ async function renderInstallPage() {
 }
 
 // --- Global Actions ---
+
+(window as any).toggleSection = (category: string) => {
+    if (expandedSections.has(category)) expandedSections.delete(category);
+    else expandedSections.add(category);
+    render();
+};
+
+(window as any).toggleGlobalExpand = () => {
+    globalExpanded = !globalExpanded;
+    if (!globalExpanded) expandedSections.clear();
+    render();
+};
 
 (window as any).toggleApp = async (name: string) => {
     const app = await db.apps.get({ name });
