@@ -464,8 +464,11 @@ async function renderInstallPage() {
     const app = await db.apps.get({ name });
     if (app && app.hasTemplate) {
         await appStore.setAppInstalled(name, !app.installed);
-        render();
-        (window as any).showDetails(app.name);
+        const modal = document.getElementById('app-modal') as any;
+        if(modal.open) {
+            await (window as any).showDetails(name);
+        }
+        await render();
     }
 };
 
