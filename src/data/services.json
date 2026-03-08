@@ -2,7 +2,7 @@
   {
     "name": "tailscale",
     "title": "Tailscale",
-    "description": "Zero config VPN. Access your homelab from anywhere.",
+    "description": "Zero config VPN. Access your homelab from anywhere. Get your credentials from: https://tailscale.com/docs/features/oauth-clients#setting-up-an-oauth-client",
     "fields": [
       {
         "name": "clientId",
