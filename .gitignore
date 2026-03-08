@@ -71,3 +71,4 @@ ehthumbs.db
 .env.*
 !.env.example # Keep .env.example
 result/
+result/
