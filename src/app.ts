@@ -432,13 +432,18 @@ async function renderInstallPage() {
                     <div class="flex-1">
                         <h3 class="text-4xl font-bold mb-4">Generate ISO</h3>
                         <p class="text-2xl text-gray-600 mb-6">Build a custom bootable image with everything pre-configured.</p>
-                        <button onclick="window.generateISO()" id="iso-btn" class="btn btn-lg bg-[#0088ff] text-white border-none rounded-xl px-10">Create Custom ISO</button>
+                        <button onclick="window.getDownloadLink()" id="iso-btn" class="action-btn btn btn-lg bg-[#0088ff] text-white border-none rounded-xl px-10">Download</button>
                     </div>
                 </div>
             </div>
         </div>
     `;
     updateOverlay();
+
+    if (sessionStorage.getItem('homelabinator_auto_build') === 'true') {
+        sessionStorage.removeItem('homelabinator_auto_build');
+        (window as any).getDownloadLink();
+    }
 }
 
 // --- Global Actions ---
@@ -524,15 +529,74 @@ async function renderInstallPage() {
     a.click();
 };
 
-(window as any).generateISO = async () => {
-    const btn = document.getElementById('iso-btn') as HTMLButtonElement;
-    btn.innerHTML = '<span class="loading loading-spinner"></span> Building...';
-    btn.disabled = true;
-    setTimeout(() => {
-        alert("ISO generation started! You'll be notified when it's ready.");
-        btn.innerHTML = 'Create Custom ISO';
-        btn.disabled = false;
-    }, 3000);
+(window as any).getDownloadLink = async () => {
+    const isInstallPage = currentPage === 'install';
+    
+    if (!isInstallPage) {
+        console.log("Initiating build and navigating to install page...");
+        try {
+            const config = await appStore.generateConfig();
+            sessionStorage.setItem('homelabinator_config', config);
+            sessionStorage.setItem('homelabinator_auto_build', 'true');
+            setPage('install');
+        } catch (error) {
+            console.error("Error generating config:", error);
+        }
+        return;
+    }
+    
+    // On Install Page
+    const config = sessionStorage.getItem('homelabinator_config');
+    const downloadBtn = Array.from(document.querySelectorAll('.action-btn'))
+        .find(btn => btn.textContent.trim() === 'Download') as HTMLButtonElement || document.getElementById('iso-btn') as HTMLButtonElement;
+    
+    if (!downloadBtn) {
+        console.error("Download button not found.");
+        return;
+    }
+
+    if (!config) {
+        console.error("No config found in session storage.");
+        downloadBtn.innerHTML = "Error: No Config";
+        return;
+    }
+
+    const originalContent = downloadBtn.innerHTML;
+    downloadBtn.disabled = true;
+    downloadBtn.innerHTML = `
+        <span class="loading loading-spinner"></span>
+        Your ISO is being built...
+    `;
+
+    try {
+        const formData = new FormData();
+        const blob = new Blob([config], { type: 'text/plain' });
+        formData.append('file', blob, 'text-snippet.txt');
+
+        const response = await fetch('https://api.homelabinator.com/generate-iso', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) throw new Error('API request failed');
+
+        const data = await response.json();
+        if (data.url) {
+            downloadBtn.innerHTML = 'Download Ready';
+            downloadBtn.disabled = false;
+            downloadBtn.onclick = (e) => {
+                e.preventDefault();
+                window.location.href = data.url;
+            };
+        } else {
+            throw new Error('No URL in response');
+        }
+    } catch (error) {
+        console.error("Error building ISO:", error);
+        downloadBtn.innerHTML = 'Error Building ISO';
+        downloadBtn.disabled = false;
+        setTimeout(() => { downloadBtn.innerHTML = originalContent; }, 3000);
+    }
 };
 
 (window as any).showDetails = async (name: string) => {
@@ -574,7 +638,7 @@ async function renderInstallPage() {
 
 (window as any).navigateNext = () => {
     if (currentPage === 'apps') setPage('services');
-    else if (currentPage === 'services') setPage('install');
+    else if (currentPage === 'services') (window as any).getDownloadLink();
 };
 
 function updateOverlay() {
