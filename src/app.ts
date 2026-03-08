@@ -460,6 +460,7 @@ async function renderInstallPage() {
     if (app && app.hasTemplate) {
         await appStore.setAppInstalled(name, !app.installed);
         render();
+        (window as any).showDetails(app.name);
     }
 };
 
@@ -559,8 +560,11 @@ async function renderInstallPage() {
             </div>
             <div class="lg:w-[400px]">
                 <img src="${app.screenshots?.[0] || 'https://picsum.photos/800/600'}" class="rounded-[23px] mb-6 shadow-lg" />
-                <button onclick="window.toggleApp('${app.name}'); (document.getElementById('app-modal') as any).close()" class="btn btn-lg w-full h-20 text-3xl ${!app.hasTemplate ? 'btn-disabled' : app.installed ? 'bg-black text-white opacity-30' : 'bg-[#efeef6] border-[#0088ff] text-[#0088ff] border-[4px]'}">
-                    ${!app.hasTemplate ? 'TBD' : app.installed ? 'Added' : 'Add App'}
+                <button 
+                    ${app.hasTemplate ? `onclick="window.toggleApp('${app.name}')"` : 'disabled'}
+                    class="mt-auto w-full py-4 rounded-[22px] text-2xl font-bold border-[5px] transition-all duration-300 ${!app.hasTemplate ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed' : app.installed ? 'bg-black border-black text-white scale-[0.98] opacity-40' : 'bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl'}"
+                >
+                    ${!app.hasTemplate ? 'TBD' : app.installed ? 'Added' : 'Add'}
                 </button>
             </div>
         </div>
