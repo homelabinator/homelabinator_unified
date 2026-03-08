@@ -633,6 +633,20 @@ async function renderInstallPage() {
                 >
                     ${!app.hasTemplate ? 'TBD' : app.installed ? 'Added' : 'Add'}
                 </button>
+                <div class="mt-auto w-full rounded-[22px] border-[5px] border-gray-200 bg-gray-50 p-4 text-lg space-y-1">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">GitHub Stars:</span>
+                        <span class="font-bold">${app.github_stars || 'N/A'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Docker Downloads:</span>
+                        <span class="font-bold">${app.docker_downloads || 'N/A'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Size Requirements:</span>
+                        <span class="font-bold"> Based on Media</span>
+                    </div>
+                </div>
             </div>
         </div>
     `;
