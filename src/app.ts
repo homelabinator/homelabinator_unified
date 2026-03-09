@@ -259,8 +259,8 @@ async function renderAppsPage(filter = '') {
 
     appGrid.innerHTML = `
         <div class="text-center py-20 px-5">
-            <h1 class="text-[96px] font-bold m-0 leading-tight">Homelabinator</h1>
-            <p class="text-5xl font-light mt-2.5">Self-Host with Ease</p>
+            <h1 class="text-[96px] font-bold m-0 leading-tight">The easiest way to selfhost.</h1>
+            <p class="text-5xl font-light mt-2.5">Create your own homelab OS</p>
         </div>
 
         <div class="max-w-[1600px] mx-auto px-8 mb-8 flex justify-end">
