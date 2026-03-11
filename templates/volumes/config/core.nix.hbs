@@ -1,0 +1,12 @@
+  system.activationScripts.homelabinator-config = {
+    text = ''
+      mkdir -p {{fields.path}}
+      chmod 777 {{fields.path}}
+      {{#if fields.createDirectory}}
+      {{#each apps}}
+      mkdir -p {{../fields.path}}/{{this.name}}
+      chmod 777 {{../fields.path}}/{{this.name}}
+      {{/each}}
+      {{/if}}
+    '';
+  };

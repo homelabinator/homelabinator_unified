@@ -120,13 +120,14 @@ export class AppStore {
     this.isInitializing = true;
 
     try {
-      const appCount = await db.apps.count();
-      if (appCount === 0) {
-        console.log('Database apps is empty. Populating...');
-        for (const appPath of manifest.apps) {
-          const appName = appPath.split('/').pop()?.replace('.nix.hbs', '') || 'unknown';
-          const config = await (await fetch(`/${appPath}`)).text();
-          await this.addApp(appName, config);
+      const volumeCount = await db.volumes.count();
+      if (volumeCount === 0) {
+        console.log('Database volumes is empty. Populating...');
+        for (const volumeDirPath of manifest.volumes) {
+          const volumeName = volumeDirPath.split('/').pop() || 'unknown';
+          const coreConfig = await (await fetch(`/${volumeDirPath}/core.nix.hbs`)).text();
+          const templateConfig = await (await fetch(`/${volumeDirPath}/template.nix.hbs`)).text();
+          await this.addVolume(volumeName, coreConfig, templateConfig);
         }
       }
 
@@ -141,14 +142,13 @@ export class AppStore {
         }
       }
 
-      const volumeCount = await db.volumes.count();
-      if (volumeCount === 0) {
-        console.log('Database volumes is empty. Populating...');
-        for (const volumeDirPath of manifest.volumes) {
-          const volumeName = volumeDirPath.split('/').pop() || 'unknown';
-          const coreConfig = await (await fetch(`/${volumeDirPath}/core.nix.hbs`)).text();
-          const templateConfig = await (await fetch(`/${volumeDirPath}/template.nix.hbs`)).text();
-          await this.addVolume(volumeName, coreConfig, templateConfig);
+      const appCount = await db.apps.count();
+      if (appCount === 0) {
+        console.log('Database apps is empty. Populating...');
+        for (const appPath of manifest.apps) {
+          const appName = appPath.split('/').pop()?.replace('.nix.hbs', '') || 'unknown';
+          const config = await (await fetch(`/${appPath}`)).text();
+          await this.addApp(appName, config);
         }
       }
     } finally {
@@ -157,12 +157,13 @@ export class AppStore {
   }
 
   async addApp(name: string, handlebars_config: string) {
+    const configVolume = await db.volumes.get({ name: 'config' });
     const app = new App(
       name,
       handlebars_config,
       0,
       [],
-      [],
+      configVolume ? [configVolume] : [],
       {},
     );
     await db.apps.add(app);
@@ -183,7 +184,7 @@ export class AppStore {
       name,
       core_config,
       template_config,
-      {},
+      { createDirectory: true },
     );
     await db.volumes.add(volume);
   }
@@ -298,8 +299,8 @@ export class AppStore {
       if (app.services) {
         for (const service of app.services) {
           const serviceTemplate = Handlebars.compile(service.template_config);
-          // Assuming a default port for now, can be made configurable
-          servicesConfig += serviceTemplate({ app: { name: app.name, port: 8080 }, fields: service.fields });
+          const port = app.fields.port || 8080;
+          servicesConfig += serviceTemplate({ app: { name: app.name, port: port }, fields: service.fields });
         }
       }
 
@@ -319,7 +320,15 @@ export class AppStore {
     for (const service of allServices) {
         if (service.core_config && service.core_config.trim() !== '') {
             const serviceTemplate = Handlebars.compile(service.core_config);
-            globalServicesConfig += serviceTemplate({ fields: service.fields });
+            globalServicesConfig += serviceTemplate({ fields: service.fields, apps: installedApps });
+        }
+    }
+
+    const allVolumes = await db.volumes.toArray();
+    for (const volume of allVolumes) {
+        if (volume.core_config && volume.core_config.trim() !== '') {
+            const volumeTemplate = Handlebars.compile(volume.core_config);
+            globalServicesConfig += volumeTemplate({ fields: volume.fields, apps: installedApps });
         }
     }
 

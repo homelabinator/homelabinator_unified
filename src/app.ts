@@ -42,6 +42,7 @@ export interface VolumeEntry {
     description: string;
     core_config: string;
     template_config: string;
+    mount_config: string;
     fields_def: any[];
     fields: { [key: string]: any };
 }
@@ -136,15 +137,19 @@ export class AppStore {
             const volumesResponse = await fetch('/src/data/volumes.json');
             const volumesData = await volumesResponse.json();
             for (const v of volumesData) {
-                let core = '', tmpl = '';
+                let core = '', tmpl = '', mount = '';
                 try {
                     core = await (await fetch(`/templates/volumes/${v.name}/core.nix.hbs`)).text();
                     tmpl = await (await fetch(`/templates/volumes/${v.name}/template.nix.hbs`)).text();
+                    try {
+                        mount = await (await fetch(`/templates/volumes/${v.name}/mount.nix.hbs`)).text();
+                    } catch(e) {}
                 } catch(e) {}
                 await db.volumes.put({ 
                     ...v, 
                     core_config: core, 
                     template_config: tmpl, 
+                    mount_config: mount,
                     fields: { path: '/var/lib/homelabinator' },
                     fields_def: v.fields // Map fields from JSON to fields_def
                 });
@@ -168,35 +173,69 @@ export class AppStore {
         let appsConfig = '';
         let globalServicesConfig = '';
 
+        let currentPortnodesPort = 30000;
+
         for (const app of installedApps) {
+            // Extract port from app config
+            let appPort = 8080;
+            const portMatch = /port = (\d+); targetPort = \d+; name = "(http|web)"/.exec(app.handlebars_config);
+            if (portMatch) {
+                appPort = parseInt(portMatch[1]);
+            } else {
+                const genericPortMatch = /port = (\d+);/.exec(app.handlebars_config);
+                if (genericPortMatch) appPort = parseInt(genericPortMatch[1]);
+            }
+
+            // Apply all volumes by default if none are set
+            const appVolumes = app.volumes.length > 0 ? app.volumes : allVolumes.map(v => v.name);
+
             let servicesConfig = '';
             for (const sName of app.services) {
                 const s = allServices.find(x => x.name === sName);
                 if (s) {
                     const template = Handlebars.compile(s.template_config);
-                    servicesConfig += template({ app: { name: app.name, port: 8080 }, fields: { ...s.fields, ...app.fields[sName] } });
+                    servicesConfig += template({ 
+                        app: { name: app.name, port: appPort }, 
+                        fields: { ...s.fields, ...app.fields[sName] },
+                        portnodesPort: currentPortnodesPort 
+                    });
+                    if (sName === 'portnodes') {
+                        currentPortnodesPort++;
+                    }
                 }
             }
 
             let volumesConfig = '';
-            for (const vName of app.volumes) {
+            for (const vName of appVolumes) {
                 const v = allVolumes.find(x => x.name === vName);
-                if (v) {
+                if (v && v.template_config) {
                     const template = Handlebars.compile(v.template_config);
-                    volumesConfig += template({ app: { name: app.name }, fields: { ...v.fields, ...app.fields[vName] } });
+                    const context = { app: { name: app.name }, fields: { ...v.fields, ...app.fields[vName] } };
+                    volumesConfig += template(context) + ',\n';
                 }
             }
 
             if (app.handlebars_config) {
                 const appTemplate = Handlebars.compile(app.handlebars_config);
-                appsConfig += appTemplate({ app, services: servicesConfig, volumes: volumesConfig });
+                appsConfig += appTemplate({ 
+                    app, 
+                    services: servicesConfig, 
+                    volumes: volumesConfig
+                });
             }
         }
 
         for (const s of allServices) {
             if (s.core_config && s.core_config.trim() !== '') {
                 const template = Handlebars.compile(s.core_config);
-                globalServicesConfig += template({ fields: s.fields });
+                globalServicesConfig += template({ fields: s.fields, apps: installedApps });
+            }
+        }
+
+        for (const v of allVolumes) {
+            if (v.core_config && v.core_config.trim() !== '') {
+                const template = Handlebars.compile(v.core_config);
+                globalServicesConfig += template({ fields: v.fields, apps: installedApps });
             }
         }
 
@@ -342,13 +381,6 @@ async function renderServicesPage() {
                     <h2 class="text-4xl font-bold mb-8 text-[#0088ff]">Global Services</h2>
                     <div class="space-y-8">
                         ${services.map(s => renderServiceVolumeCard(s, 'service', installedApps)).join('')}
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="text-4xl font-bold mb-8 text-[#0088ff]">Volumes</h2>
-                    <div class="space-y-8">
-                        ${volumes.map(v => renderServiceVolumeCard(v, 'volume', installedApps)).join('')}
                     </div>
                 </section>
             </div>

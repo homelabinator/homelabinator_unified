@@ -13,7 +13,8 @@ export const manifest = {
     "templates/apps/actual-budget.nix.hbs"
   ],
   "services": [
-    "templates/services/tailscale"
+    "templates/services/tailscale",
+    "templates/services/portnodes"
   ],
   "volumes": [
     "templates/volumes/config"

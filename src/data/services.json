@@ -1,8 +1,23 @@
 [
   {
-    "name": "tailscale",
+    "title": "Portnodes",
+    "description": "Portnodes service to expose your apps safely.",
+    "fields": [
+      {
+        "name": "portnodesPort",
+        "label": "Node Port",
+        "type": "text",
+        "placeholder": "30000"
+      }
+    ],
+    "content": "Portnodes is used to expose your applications through a secure and automated mechanism.",
+    "id": "portnodes",
+    "hasTemplate": true,
+    "name": "portnodes"
+  },
+  {
     "title": "Tailscale",
-    "description": "Zero config VPN. Access your homelab from anywhere. Get your credentials from: https://tailscale.com/docs/features/oauth-clients#setting-up-an-oauth-client",
+    "description": "Zero config VPN. Access your homelab from anywhere.",
     "fields": [
       {
         "name": "clientId",
@@ -16,6 +31,10 @@
         "type": "password",
         "placeholder": "tskey-secret-..."
       }
-    ]
+    ],
+    "content": "Tailscale is a zero-config VPN that creates a secure mesh network between your devices.",
+    "id": "tailscale",
+    "hasTemplate": true,
+    "name": "tailscale"
   }
 ]

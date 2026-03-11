@@ -78,6 +78,7 @@ services.k3s.manifests.{{app.name}}.content = [
         { port = 53; targetPort = 53; name = "dns-tcp"; protocol = "TCP"; }
       ];
     };
-  }
+    }
   {{{services}}}
+  {{{volumes}}}
 ];
