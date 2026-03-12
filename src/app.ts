@@ -64,6 +64,45 @@ export class HomelabDatabase extends Dexie {
 
 export const db = new HomelabDatabase();
 
+// --- Handlebars Helpers for Hooks ---
+
+let sessionPorts: Record<string, any[]> = {};
+let sessionVolumes: Record<string, any[]> = {};
+
+Handlebars.registerHelper('hook_port', function(port, name, options) {
+    const appName = this.app.name;
+    if (!sessionPorts[appName]) sessionPorts[appName] = [];
+    const protocol = (options.hash && options.hash.protocol) || 'TCP';
+    sessionPorts[appName].push({ port, name, protocol });
+    let res = `{ containerPort = ${port}; name = "${name}"; `;
+    if (protocol !== 'TCP') res += `protocol = "${protocol}"; `;
+    res += `}`;
+    return res;
+});
+
+Handlebars.registerHelper('hook_volume', function(name, mountPath) {
+    const appName = this.app.name;
+    if (!sessionVolumes[appName]) sessionVolumes[appName] = [];
+    sessionVolumes[appName].push({ name, mountPath });
+    return `{ name = "${name}"; mountPath = "${mountPath}"; }`;
+});
+
+Handlebars.registerHelper('hook_volumes_pod', function() {
+    const appName = this.app.name;
+    const volumes = sessionVolumes[appName] || [];
+    let res = '';
+    for (const v of volumes) {
+        res += `{\n                  name = "${v.name}";\n`;
+        if (v.name === 'dshm') {
+            res += `                  emptyDir = {\n                    medium = "Memory";\n                    sizeLimit = "1Gi";\n                  };\n`;
+        } else {
+            res += `                  hostPath = {\n                    path = "/home/homelab/${appName}/${v.name}";\n                    type = "DirectoryOrCreate";\n                  };\n`;
+        }
+        res += `                }\n                `;
+    }
+    return new Handlebars.SafeString(res.trimEnd());
+});
+
 // --- App Store Logic ---
 
 export class AppStore {
@@ -170,26 +209,28 @@ export class AppStore {
         const allServices = await db.services.toArray();
         const allVolumes = await db.volumes.toArray();
 
+        sessionPorts = {};
+        sessionVolumes = {};
+
         let appsConfig = '';
+        let servicesConfig = '';
+        let volumesConfig = '';
         let globalServicesConfig = '';
 
         let currentPortnodesPort = 30000;
 
+        // First pass: Render apps to collect ports and volumes via hooks
         for (const app of installedApps) {
-            // Extract port from app config
-            let appPort = 8080;
-            const portMatch = /port = (\d+); targetPort = \d+; name = "(http|web)"/.exec(app.handlebars_config);
-            if (portMatch) {
-                appPort = parseInt(portMatch[1]);
-            } else {
-                const genericPortMatch = /port = (\d+);/.exec(app.handlebars_config);
-                if (genericPortMatch) appPort = parseInt(genericPortMatch[1]);
+            if (app.handlebars_config) {
+                const appTemplate = Handlebars.compile(app.handlebars_config);
+                appsConfig += appTemplate({ app });
             }
+        }
 
-            // Apply all volumes by default if none are set
-            const appVolumes = app.volumes.length > 0 ? app.volumes : allVolumes.map(v => v.name);
+        // Second pass: Render extra services and volumes, and app-specific services
+        for (const app of installedApps) {
+            const appPort = sessionPorts[app.name]?.[0]?.port || 8080;
 
-            let servicesConfig = '';
             for (const sName of app.services) {
                 const s = allServices.find(x => x.name === sName);
                 if (s) {
@@ -205,7 +246,7 @@ export class AppStore {
                 }
             }
 
-            let volumesConfig = '';
+            const appVolumes = app.volumes.length > 0 ? app.volumes : allVolumes.map(v => v.name);
             for (const vName of appVolumes) {
                 const v = allVolumes.find(x => x.name === vName);
                 if (v && v.template_config) {
@@ -215,13 +256,25 @@ export class AppStore {
                 }
             }
 
-            if (app.handlebars_config) {
-                const appTemplate = Handlebars.compile(app.handlebars_config);
-                appsConfig += appTemplate({ 
-                    app, 
-                    services: servicesConfig, 
-                    volumes: volumesConfig
-                });
+            // Generate app Service
+            const ports = sessionPorts[app.name] || [];
+            if (ports.length > 0) {
+                servicesConfig += `
+      {
+        apiVersion = "v1";
+        kind = "Service";
+        metadata = {
+          name = "${app.name}-svc";
+          labels.app = "${app.name}";
+        };
+        spec = {
+          type = "ClusterIP";
+          selector.app = "${app.name}";
+          ports = [
+            ${ports.map(p => `{ port = ${p.port}; targetPort = ${p.port}; name = "${p.name}"; ${p.protocol !== 'TCP' ? `protocol = "${p.protocol}"; ` : ''} }`).join('\n            ')}
+          ];
+        };
+      },\n`;
             }
         }
 
@@ -239,9 +292,15 @@ export class AppStore {
             }
         }
 
-        return Handlebars.compile(coreTemplate)({ apps: appsConfig, globalservices: globalServicesConfig });
+        return Handlebars.compile(coreTemplate)({ 
+            apps: appsConfig, 
+            services: servicesConfig,
+            volumes: volumesConfig,
+            globalservices: globalServicesConfig 
+        });
     }
 }
+
 
 const appStore = AppStore.getInstance();
 

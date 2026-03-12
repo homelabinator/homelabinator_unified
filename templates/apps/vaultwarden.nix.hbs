@@ -21,21 +21,15 @@ services.k3s.manifests.{{app.name}}.content = [
                 { name = "LOG_LEVEL"; value = "warn"; }
               ];
               ports = [
-                { containerPort = 80; name = "http"; }
+                {{hook_port 80 "http"}}
               ];
               volumeMounts = [
-                { name = "data"; mountPath = "/data"; }
+                {{hook_volume "data" "/data"}}
               ];
             }
           ];
           volumes = [
-            {
-              name = "data";
-              hostPath = {
-                path = "/home/homelab/{{app.name}}/data";
-                type = "DirectoryOrCreate";
-              };
-            }
+            {{hook_volumes_pod}}
           ];
           tolerations = [
             {
@@ -53,21 +47,4 @@ services.k3s.manifests.{{app.name}}.content = [
       };
     };
   }
-  {
-    apiVersion = "v1";
-    kind = "Service";
-    metadata = {
-      name = "{{app.name}}-svc";
-      labels.app = "{{app.name}}";
-    };
-    spec = {
-      type = "ClusterIP";
-      selector.app = "{{app.name}}";
-      ports = [
-        { port = 80; targetPort = 80; name = "http"; }
-      ];
-    };
-    }
-  {{{services}}}
-  {{{volumes}}}
 ];

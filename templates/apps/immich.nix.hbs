@@ -25,11 +25,11 @@ services.k3s.manifests.{{app.name}}.content = [
                 { name = "TZ"; value = "Etc/UTC"; }
               ];
               ports = [
-                { containerPort = 2283; name = "http"; }
+                {{hook_port 2283 "http"}}
               ];
               volumeMounts = [
-                { name = "config"; mountPath = "/config"; }
-                { name = "data"; mountPath = "/data"; }
+                {{hook_volume "config" "/config"}}
+                {{hook_volume "data" "/data"}}
               ];
             }
             {
@@ -45,32 +45,12 @@ services.k3s.manifests.{{app.name}}.content = [
                 { name = "POSTGRES_DB"; value = "immich"; }
               ];
               volumeMounts = [
-                { name = "pgdata"; mountPath = "/var/lib/postgresql/data"; }
+                {{hook_volume "postgres" "/var/lib/postgresql/data"}}
               ];
             }
           ];
           volumes = [
-            {
-              name = "config";
-              hostPath = {
-                path = "/home/homelab/{{app.name}}/config";
-                type = "DirectoryOrCreate";
-              };
-            }
-            {
-              name = "data";
-              hostPath = {
-                path = "/home/homelab/{{app.name}}/data";
-                type = "DirectoryOrCreate";
-              };
-            }
-            {
-              name = "pgdata";
-              hostPath = {
-                path = "/home/homelab/{{app.name}}/postgres";
-                type = "DirectoryOrCreate";
-              };
-            }
+            {{hook_volumes_pod}}
           ];
           tolerations = [
             {
@@ -88,21 +68,4 @@ services.k3s.manifests.{{app.name}}.content = [
       };
     };
   }
-  {
-    apiVersion = "v1";
-    kind = "Service";
-    metadata = {
-      name = "{{app.name}}-svc";
-      labels.app = "{{app.name}}";
-    };
-    spec = {
-      type = "ClusterIP";
-      selector.app = "{{app.name}}";
-      ports = [
-        { port = 2283; targetPort = 2283; name = "http"; }
-      ];
-    };
-    }
-  {{{services}}}
-  {{{volumes}}}
 ];

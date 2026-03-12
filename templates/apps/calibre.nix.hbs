@@ -1,89 +1,57 @@
-services.k3s.manifests.calibre.content = [
-      {
-        apiVersion = "apps/v1";
-        kind = "Deployment";
-        metadata = {
-          name = "calibre";
-          labels.app = "calibre";
-        };
+services.k3s.manifests.{{app.name}}.content = [
+  {
+    apiVersion = "apps/v1";
+    kind = "Deployment";
+    metadata = {
+      name = "{{app.name}}";
+      labels.app = "{{app.name}}";
+    };
+    spec = {
+      replicas = 1;
+      selector.matchLabels.app = "{{app.name}}";
+      template = {
+        metadata.labels.app = "{{app.name}}";
         spec = {
-          replicas = 1;
-          selector.matchLabels.app = "calibre";
-          template = {
-            metadata.labels.app = "calibre";
-            spec = {
-              containers = [
-                {
-                  name = "calibre";
-                  image = "lscr.io/linuxserver/calibre:latest";
-                  securityContext = {
-                    seccompProfile.type = "Unconfined";
-                  };
-                  env = [
-                    { name = "PUID"; value = "1000"; }
-                    { name = "PGID"; value = "1000"; }
-                    { name = "TZ"; value = "Etc/UTC"; }
-                  ];
-                  ports = [
-                    { containerPort = 8080; name = "web"; }
-                    { containerPort = 8181; name = "wireless"; }
-                    { containerPort = 8081; name = "content"; }
-                  ];
-                  volumeMounts = [
-                    { name = "config"; mountPath = "/config"; }
-                    { name = "dshm"; mountPath = "/dev/shm"; }
-                  ];
-                }
+          containers = [
+            {
+              name = "{{app.name}}";
+              image = "lscr.io/linuxserver/calibre:latest";
+              securityContext = {
+                seccompProfile.type = "Unconfined";
+              };
+              env = [
+                { name = "PUID"; value = "1000"; }
+                { name = "PGID"; value = "1000"; }
+                { name = "TZ"; value = "Etc/UTC"; }
               ];
-              volumes = [
-                {
-                  name = "config";
-                  hostPath = {
-                    path = "/home/homelab/{{app.name}}/config";
-                    type = "DirectoryOrCreate";
-                  };
-                }
-                {
-                  name = "dshm";
-                  emptyDir = {
-                    medium = "Memory";
-                    sizeLimit = "1Gi";
-                  };
-                }
+              ports = [
+                {{hook_port 8080 "web"}}
+                {{hook_port 8181 "wireless"}}
+                {{hook_port 8081 "content"}}
               ];
-              tolerations = [
-                {
-                  key = "node-role.kubernetes.io/master";
-                  operator = "Exists";
-                  effect = "NoSchedule";
-                }
-                {
-                  key = "node-role.kubernetes.io/control-plane";
-                  operator = "Exists";
-                  effect = "NoSchedule";
-                }
+              volumeMounts = [
+                {{hook_volume "config" "/config"}}
+                {{hook_volume "dshm" "/dev/shm"}}
               ];
-            };
-          };
-        };
-      }
-      {
-        apiVersion = "v1";
-        kind = "Service";
-        metadata = {
-          name = "calibre-svc";
-          labels.app = "calibre";
-        };
-        spec = {
-          type = "ClusterIP";
-          selector.app = "calibre";
-          ports = [
-            { port = 8080; targetPort = 8080; name = "web"; }
-            { port = 8181; targetPort = 8181; name = "wireless"; }
-            { port = 8081; targetPort = 8081; name = "content"; }
+            }
+          ];
+          volumes = [
+            {{hook_volumes_pod}}
+          ];
+          tolerations = [
+            {
+              key = "node-role.kubernetes.io/master";
+              operator = "Exists";
+              effect = "NoSchedule";
+            }
+            {
+              key = "node-role.kubernetes.io/control-plane";
+              operator = "Exists";
+              effect = "NoSchedule";
+            }
           ];
         };
-        }
-  {{{services}}}
-  {{{volumes}}}
+      };
+    };
+  }
 ];

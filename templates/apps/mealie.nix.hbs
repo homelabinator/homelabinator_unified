@@ -23,21 +23,15 @@ services.k3s.manifests.{{app.name}}.content = [
                 { name = "TZ"; value = "Etc/UTC"; }
               ];
               ports = [
-                { containerPort = 9000; name = "http"; }
+                {{hook_port 9000 "http"}}
               ];
               volumeMounts = [
-                { name = "data"; mountPath = "/app/data"; }
+                {{hook_volume "data" "/app/data"}}
               ];
             }
           ];
           volumes = [
-            {
-              name = "data";
-              hostPath = {
-                path = "/home/homelab/{{app.name}}/data";
-                type = "DirectoryOrCreate";
-              };
-            }
+            {{hook_volumes_pod}}
           ];
           tolerations = [
             {
@@ -55,21 +49,4 @@ services.k3s.manifests.{{app.name}}.content = [
       };
     };
   }
-  {
-    apiVersion = "v1";
-    kind = "Service";
-    metadata = {
-      name = "{{app.name}}-svc";
-      labels.app = "{{app.name}}";
-    };
-    spec = {
-      type = "ClusterIP";
-      selector.app = "{{app.name}}";
-      ports = [
-        { port = 9000; targetPort = 9000; name = "http"; }
-      ];
-    };
-    }
-  {{{services}}}
-  {{{volumes}}}
 ];
