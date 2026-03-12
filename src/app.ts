@@ -217,8 +217,6 @@ export class AppStore {
         let volumesConfig = '';
         let globalServicesConfig = '';
 
-        let currentPortnodesPort = 30000;
-
         // First pass: Render apps to collect ports and volumes via hooks
         for (const app of installedApps) {
             if (app.handlebars_config) {
@@ -229,7 +227,8 @@ export class AppStore {
 
         // Second pass: Render extra services and volumes, and app-specific services
         for (const app of installedApps) {
-            const appPort = sessionPorts[app.name]?.[0]?.port || 8080;
+            const ports = sessionPorts[app.name] || [];
+            const appPort = ports[0]?.port || 8080;
 
             for (const sName of app.services) {
                 const s = allServices.find(x => x.name === sName);
@@ -237,12 +236,8 @@ export class AppStore {
                     const template = Handlebars.compile(s.template_config);
                     servicesConfig += template({ 
                         app: { name: app.name, port: appPort }, 
-                        fields: { ...s.fields, ...app.fields[sName] },
-                        portnodesPort: currentPortnodesPort 
+                        fields: { ...s.fields, ...app.fields[sName] }
                     });
-                    if (sName === 'portnodes') {
-                        currentPortnodesPort++;
-                    }
                 }
             }
 
@@ -257,7 +252,6 @@ export class AppStore {
             }
 
             // Generate app Service
-            const ports = sessionPorts[app.name] || [];
             if (ports.length > 0) {
                 servicesConfig += `
       {

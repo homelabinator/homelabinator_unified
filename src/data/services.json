@@ -2,14 +2,7 @@
   {
     "title": "Portnodes",
     "description": "Portnodes service to expose your apps safely.",
-    "fields": [
-      {
-        "name": "portnodesPort",
-        "label": "Node Port",
-        "type": "text",
-        "placeholder": "30000"
-      }
-    ],
+    "fields": [],
     "content": "Portnodes is used to expose your applications through a secure and automated mechanism.",
     "id": "portnodes",
     "hasTemplate": true,
