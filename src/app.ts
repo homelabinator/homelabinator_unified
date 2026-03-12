@@ -77,14 +77,14 @@ Handlebars.registerHelper('hook_port', function(port, name, options) {
     let res = `{ containerPort = ${port}; name = "${name}"; `;
     if (protocol !== 'TCP') res += `protocol = "${protocol}"; `;
     res += `}`;
-    return res;
+    return new Handlebars.SafeString(res);
 });
 
 Handlebars.registerHelper('hook_volume', function(name, mountPath) {
     const appName = this.app.name;
     if (!sessionVolumes[appName]) sessionVolumes[appName] = [];
     sessionVolumes[appName].push({ name, mountPath });
-    return `{ name = "${name}"; mountPath = "${mountPath}"; }`;
+    return new Handlebars.SafeString(`{ name = "${name}"; mountPath = "${mountPath}"; }`);
 });
 
 Handlebars.registerHelper('hook_volumes_pod', function() {
