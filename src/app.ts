@@ -363,7 +363,7 @@ async function renderAppsPage(filter = '') {
 
         <div class="max-w-[1600px] mx-auto px-8 mb-8 flex justify-end">
             ${anyCanExpand ? `
-                <button onclick="window.toggleGlobalExpand()" class="btn btn-ghost text-xl border-2 border-black rounded-xl px-6">
+                <button onclick="window.toggleGlobalExpand()" class="btn btn-ghost text-xl border-2 border-black rounded-xl px-6 cursor-pointer">
                     ${globalExpanded ? 'Collapse All' : 'Expand All'}
                 </button>
             ` : ''}
@@ -399,7 +399,7 @@ async function renderAppsPage(filter = '') {
                                     
                                     <button 
                                         ${app.hasTemplate ? `onclick="window.toggleApp('${app.name}')"` : 'disabled'}
-                                        class="mt-auto w-full py-4 rounded-[22px] text-2xl font-bold border-[5px] transition-all duration-300 ${!app.hasTemplate ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed' : app.installed ? 'bg-black border-black text-white scale-[0.98] opacity-40' : 'bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl'}"
+                                        class="mt-auto w-full py-4 rounded-[22px] text-2xl font-bold border-[5px] transition-all duration-300 ${!app.hasTemplate ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed' : app.installed ? 'bg-black border-black text-white scale-[0.98] opacity-40 cursor-pointer' : 'bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl cursor-pointer'}"
                                     >
                                         ${!app.hasTemplate ? 'TBD' : app.installed ? 'Added' : 'Add'}
                                     </button>
@@ -409,7 +409,7 @@ async function renderAppsPage(filter = '') {
                         
                         ${hasMore ? `
                             <div class="flex justify-center mt-10">
-                                <button onclick="window.toggleSection('${category}')" class="bg-white/90 backdrop-blur-sm border-[4px] border-white text-gray-800 font-bold py-3 px-12 rounded-[25px] text-2xl shadow-lg hover:scale-105 transition-transform">
+                                <button onclick="window.toggleSection('${category}')" class="bg-white/90 backdrop-blur-sm border-[4px] border-white text-gray-800 font-bold py-3 px-12 rounded-[25px] text-2xl shadow-lg hover:scale-105 transition-transform cursor-pointer">
                                     ${isExpanded ? 'Show Less' : 'Show More'}
                                 </button>
                             </div>
@@ -702,7 +702,7 @@ async function renderInstallPage() {
 
     content.innerHTML = `
         <div class="bg-white border-[5px] border-black rounded-[23px] p-10 flex flex-col lg:flex-row gap-10 max-w-6xl w-full relative">
-            <form method="dialog"><button class="absolute top-5 right-5 w-12 h-12 bg-white border-2 border-black rounded-full flex items-center justify-center text-2xl">✕</button></form>
+            <form method="dialog"><button class="absolute top-5 right-5 w-12 h-12 bg-white border-2 border-black rounded-full flex items-center justify-center text-2xl cursor-pointer">✕</button></form>
             <div class="flex-1">
                 <div class="flex items-center gap-8 mb-10">
                     <div class="w-[120px] h-[120px] bg-black rounded-[23px] flex items-center justify-center overflow-hidden p-4">
@@ -720,7 +720,7 @@ async function renderInstallPage() {
                 <img src="${app.screenshots?.[0] || 'https://picsum.photos/800/600'}" class="rounded-[23px] mb-6 shadow-lg" />
                 <button 
                     ${app.hasTemplate ? `onclick="window.toggleApp('${app.name}')"` : 'disabled'}
-                    class="mt-auto w-full py-4 rounded-[22px] text-2xl font-bold border-[5px] transition-all duration-300 ${!app.hasTemplate ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed' : app.installed ? 'bg-black border-black text-white scale-[0.98] opacity-40' : 'bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl'}"
+                    class="mt-auto w-full py-4 rounded-[22px] text-2xl font-bold border-[5px] transition-all duration-300 ${!app.hasTemplate ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed' : app.installed ? 'bg-black border-black text-white scale-[0.98] opacity-40 cursor-pointer' : 'bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl cursor-pointer'}"
                 >
                     ${!app.hasTemplate ? 'TBD' : app.installed ? 'Added' : 'Add'}
                 </button>
