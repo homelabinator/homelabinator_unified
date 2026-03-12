@@ -749,16 +749,27 @@ async function renderInstallPage() {
     else if (currentPage === 'services') (window as any).getDownloadLink();
 };
 
+(window as any).navigateBack = () => {
+    if (currentPage === 'services') setPage('apps');
+    else if (currentPage === 'install') setPage('services');
+};
+
 function updateOverlay() {
-    const nextBtn = document.getElementById('next-button-container');
-    if (!nextBtn) return;
-    if (currentPage === 'install') {
-        nextBtn.classList.add('hidden');
-    } else {
+    const nextBtn = document.getElementById('next-button');
+    const backBtn = document.getElementById('back-button');
+    
+    if (currentPage === 'apps') {
+        backBtn?.classList.add('hidden');
         db.apps.where('installed').equals(1).count().then(count => {
-            if (count > 0) nextBtn.classList.remove('hidden');
-            else nextBtn.classList.add('hidden');
+            if (count > 0) nextBtn?.classList.remove('hidden');
+            else nextBtn?.classList.add('hidden');
         });
+    } else if (currentPage === 'services') {
+        backBtn?.classList.remove('hidden');
+        nextBtn?.classList.remove('hidden');
+    } else if (currentPage === 'install') {
+        backBtn?.classList.remove('hidden');
+        nextBtn?.classList.add('hidden');
     }
 }
 
