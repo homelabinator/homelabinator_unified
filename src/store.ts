@@ -160,7 +160,7 @@ export class AppStore {
                 if (v && v.template_config) {
                     const template = Handlebars.compile(v.template_config);
                     const context = { app: { name: app.name }, fields: { ...v.fields, ...app.fields[vName] } };
-                    volumesList += template(context) + ',\n';
+                    volumesList += template(context) + '\n';
                 }
             }
 
@@ -180,7 +180,7 @@ export class AppStore {
         ${ports.map(p => `{ port = ${p.port}; targetPort = ${p.port}; name = "${p.name}"; ${p.protocol !== 'TCP' ? `protocol = "${p.protocol}"; ` : ''} }`).join('\n        ')}
       ];
     };
-  },\n`;
+  }\n`;
             }
         }
 
@@ -190,14 +190,14 @@ export class AppStore {
         for (const s of allServices) {
             if (usedServiceNames.has(s.name) && s.core_config && s.core_config.trim() !== '') {
                 const template = Handlebars.compile(s.core_config);
-                globalServicesConfig += template({ fields: s.fields, apps: installedApps });
+                globalServicesConfig += template({ fields: s.fields, apps: installedApps }) + '\n';
             }
         }
 
         for (const v of allVolumes) {
             if (usedVolumeNames.has(v.name) && v.core_config && v.core_config.trim() !== '') {
                 const template = Handlebars.compile(v.core_config);
-                globalServicesConfig += template({ fields: v.fields, apps: installedApps });
+                globalServicesConfig += template({ fields: v.fields, apps: installedApps }) + '\n';
             }
         }
 
