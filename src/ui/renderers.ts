@@ -216,26 +216,33 @@ export async function renderInstallPage() {
                 <div class="flex gap-8 items-start">
                     <div class="w-20 h-20 bg-[#0088ff] text-white rounded-full flex items-center justify-center text-4xl font-bold shrink-0">1</div>
                     <div>
-                        <h3 class="text-4xl font-bold mb-4">Review Configuration</h3>
-                        <p class="text-2xl text-gray-600">Ensure all your apps, services, and volumes are configured correctly.</p>
+                        <h3 class="text-4xl font-bold mb-4">Prepare</h3>
+                        <p class="text-2xl text-gray-600">Insert a USB drive into <b>this</b> computer. Locate an old computer you wish to revive.</p>
                     </div>
                 </div>
 
                 <div class="flex gap-8 items-start">
                     <div class="w-20 h-20 bg-[#0088ff] text-white rounded-full flex items-center justify-center text-4xl font-bold shrink-0">2</div>
                     <div class="flex-1">
-                        <h3 class="text-4xl font-bold mb-4">Download Config</h3>
-                        <p class="text-2xl text-gray-600 mb-6">Get your Nix configuration file for manual installation.</p>
-                        <button onclick="window.downloadConfig()" class="btn btn-lg bg-[#efeef6] border-[#0088ff] text-[#0088ff] border-[4px] rounded-xl px-10">Download config.nix</button>
+                        <h3 class="text-4xl font-bold mb-4">Install Balena Etcher</h3>
+                        <p class="text-2xl text-gray-600 mb-6">To install Homelabinator on your old computer, you need to utilize <u><a href="https://etcher.balena.io/" target="_blank" rel="noopener noreferrer">Balena Etcher</a></u> to prepare your USB. Install it, then come back to this page to download your ISO file.</p>
                     </div>
                 </div>
 
                 <div class="flex gap-8 items-start">
                     <div class="w-20 h-20 bg-[#0088ff] text-white rounded-full flex items-center justify-center text-4xl font-bold shrink-0">3</div>
                     <div class="flex-1">
-                        <h3 class="text-4xl font-bold mb-4">Generate ISO</h3>
-                        <p class="text-2xl text-gray-600 mb-6">Build a custom bootable image with everything pre-configured.</p>
+                        <h3 class="text-4xl font-bold mb-4">Flash</h3>
+                        <p class="text-2xl text-gray-600 mb-6">Open Balena Etcher. Select the downloaded ISO and your USB drive.</p>
                         <button onclick="window.getDownloadLink()" id="iso-btn" class="action-btn btn btn-lg bg-[#0088ff] text-white border-none rounded-xl px-10">Download</button>
+                    </div>
+                </div>
+                
+                <div class="flex gap-8 items-start">
+                    <div class="w-20 h-20 bg-[#0088ff] text-white rounded-full flex items-center justify-center text-4xl font-bold shrink-0">3</div>
+                    <div class="flex-1">
+                        <h3 class="text-4xl font-bold mb-4">Boot</h3>
+                        <p class="text-2xl text-gray-600 mb-6">Eject the USB (it's ok if your USB drive is not recognized by your computer) and plug it into the <b>old</b> computer. Turn it on and press the key to get into the Boot Menu (typically F12, F2, or Delete).</p>
                     </div>
                 </div>
             </div>
