@@ -1,0 +1,7 @@
+{
+  name = "{{volume.name}}";
+  hostPath = {
+    path = "{{fields.path}}/{{app.name}}/{{volume.name}}";
+    type = "DirectoryOrCreate";
+  };
+}

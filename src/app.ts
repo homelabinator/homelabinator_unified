@@ -68,6 +68,11 @@ export const db = new HomelabDatabase();
 
 let sessionPorts: Record<string, any[]> = {};
 let sessionVolumes: Record<string, any[]> = {};
+let globalAllVolumes: VolumeEntry[] = [];
+
+Handlebars.registerHelper('eq', function(a, b) {
+    return a === b;
+});
 
 Handlebars.registerHelper('hook_port', function(port, name, options) {
     const appName = this.app.name;
@@ -88,17 +93,22 @@ Handlebars.registerHelper('hook_volume', function(name, mountPath) {
 });
 
 Handlebars.registerHelper('hook_volumes_pod', function() {
-    const appName = this.app.name;
-    const volumes = sessionVolumes[appName] || [];
+    const app = this.app;
+    const volumes = sessionVolumes[app.name] || [];
     let res = '';
+    
+    // Find the volume service template (defaulting to hostPath)
+    const hostPathService = globalAllVolumes.find(v => v.name === 'hostPath');
+    if (!hostPathService || !hostPathService.template_config) return '';
+
+    const template = Handlebars.compile(hostPathService.template_config);
+    
     for (const v of volumes) {
-        res += `{\n                  name = "${v.name}";\n`;
-        if (v.name === 'dshm') {
-            res += `                  emptyDir = {\n                    medium = "Memory";\n                    sizeLimit = "1Gi";\n                  };\n`;
-        } else {
-            res += `                  hostPath = {\n                    path = "/home/homelab/${appName}/${v.name}";\n                    type = "DirectoryOrCreate";\n                  };\n`;
-        }
-        res += `                }\n                `;
+        res += template({
+            app: app,
+            volume: v,
+            fields: hostPathService.fields
+        }) + '\n';
     }
     return new Handlebars.SafeString(res.trimEnd());
 });
@@ -209,19 +219,20 @@ export class AppStore {
         const allServices = await db.services.toArray();
         const allVolumes = await db.volumes.toArray();
 
+        globalAllVolumes = allVolumes;
         sessionPorts = {};
         sessionVolumes = {};
 
         let appsConfig = '';
-        let servicesConfig = '';
-        let volumesConfig = '';
+        let servicesList = '';
+        let volumesList = '';
         let globalServicesConfig = '';
 
         // First pass: Render apps to collect ports and volumes via hooks
         for (const app of installedApps) {
             if (app.handlebars_config) {
                 const appTemplate = Handlebars.compile(app.handlebars_config);
-                appsConfig += appTemplate({ app });
+                appsConfig += appTemplate({ app }) + '\n';
             }
         }
 
@@ -234,43 +245,47 @@ export class AppStore {
                 const s = allServices.find(x => x.name === sName);
                 if (s) {
                     const template = Handlebars.compile(s.template_config);
-                    servicesConfig += template({ 
+                    servicesList += template({ 
                         app: { name: app.name, port: appPort }, 
                         fields: { ...s.fields, ...app.fields[sName] }
-                    });
+                    }) + '\n';
                 }
             }
 
             const appVolumes = app.volumes.length > 0 ? app.volumes : allVolumes.map(v => v.name);
             for (const vName of appVolumes) {
+                if (vName === 'hostPath') continue;
                 const v = allVolumes.find(x => x.name === vName);
                 if (v && v.template_config) {
                     const template = Handlebars.compile(v.template_config);
                     const context = { app: { name: app.name }, fields: { ...v.fields, ...app.fields[vName] } };
-                    volumesConfig += template(context) + ',\n';
+                    volumesList += template(context) + ',\n';
                 }
             }
 
             // Generate app Service
             if (ports.length > 0) {
-                servicesConfig += `
-      {
-        apiVersion = "v1";
-        kind = "Service";
-        metadata = {
-          name = "${app.name}-svc";
-          labels.app = "${app.name}";
-        };
-        spec = {
-          type = "ClusterIP";
-          selector.app = "${app.name}";
-          ports = [
-            ${ports.map(p => `{ port = ${p.port}; targetPort = ${p.port}; name = "${p.name}"; ${p.protocol !== 'TCP' ? `protocol = "${p.protocol}"; ` : ''} }`).join('\n            ')}
-          ];
-        };
-      },\n`;
+                servicesList += `
+  {
+    apiVersion = "v1";
+    kind = "Service";
+    metadata = {
+      name = "${app.name}-svc";
+      labels.app = "${app.name}";
+    };
+    spec = {
+      type = "ClusterIP";
+      selector.app = "${app.name}";
+      ports = [
+        ${ports.map(p => `{ port = ${p.port}; targetPort = ${p.port}; name = "${p.name}"; ${p.protocol !== 'TCP' ? `protocol = "${p.protocol}"; ` : ''} }`).join('\n        ')}
+      ];
+    };
+  },\n`;
             }
         }
+
+        let servicesConfig = servicesList ? `\n    services.k3s.manifests.app-services.content = [\n${servicesList}\n    ];\n` : '';
+        let volumesConfig = volumesList ? `\n    services.k3s.manifests.app-volumes.content = [\n${volumesList}\n    ];\n` : '';
 
         for (const s of allServices) {
             if (s.core_config && s.core_config.trim() !== '') {

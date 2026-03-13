@@ -1,22 +1,18 @@
 [
   {
-    "title": "Config Volume",
-    "description": "Persistent storage for app configurations.",
+    "title": "Host Path",
+    "description": "Persistent storage using host directories.",
     "fields": [
       {
         "name": "path",
-        "label": "Storage Path",
+        "label": "Base Storage Path",
         "type": "text",
-        "placeholder": "/var/lib/homelabinator"
-      },
-      {
-        "name": "createDirectory",
-        "label": "Create App Directories",
-        "type": "checkbox"
+        "placeholder": "/home/homelabinator"
       }
-      ],    "content": "Shared configuration volume for all applications to maintain persistence across updates.",
-    "id": "config",
+    ],
+    "content": "Host Path volumes mount directories from the host machine directly into your apps.",
+    "id": "hostPath",
     "hasTemplate": true,
-    "name": "config"
+    "name": "hostPath"
   }
 ]
