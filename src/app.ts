@@ -165,9 +165,13 @@ export class AppStore {
             }
 
             // 2. Populate Services
-            const servicesResponse = await fetch('/src/data/services.json');
-            const servicesData = await servicesResponse.json();
-            for (const s of servicesData) {
+            const servicesResponse = await fetch('/src/data/services/manifest.json');
+            const serviceIds = await servicesResponse.json();
+
+            for (const sId of serviceIds) {
+                const metaResponse = await fetch(`/src/data/services/${sId}.json`);
+                const s = await metaResponse.json();
+
                 let core = '', tmpl = '';
                 try {
                     core = await (await fetch(`/templates/services/${s.name}/core.nix.hbs`)).text();
@@ -183,9 +187,13 @@ export class AppStore {
             }
 
             // 3. Populate Volumes
-            const volumesResponse = await fetch('/src/data/volumes.json');
-            const volumesData = await volumesResponse.json();
-            for (const v of volumesData) {
+            const volumesResponse = await fetch('/src/data/volumes/manifest.json');
+            const volumeIds = await volumesResponse.json();
+
+            for (const vId of volumeIds) {
+                const metaResponse = await fetch(`/src/data/volumes/${vId}.json`);
+                const v = await metaResponse.json();
+
                 let core = '', tmpl = '', mount = '';
                 try {
                     core = await (await fetch(`/templates/volumes/${v.name}/core.nix.hbs`)).text();
