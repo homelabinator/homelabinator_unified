@@ -235,6 +235,8 @@ export class AppStore {
         let servicesList = '';
         let volumesList = '';
         let globalServicesConfig = '';
+        const usedServiceNames = new Set<string>();
+        const usedVolumeNames = new Set<string>();
 
         // First pass: Render apps to collect ports and volumes via hooks
         for (const app of installedApps) {
@@ -252,6 +254,7 @@ export class AppStore {
             for (const sName of app.services) {
                 const s = allServices.find(x => x.name === sName);
                 if (s) {
+                    usedServiceNames.add(sName);
                     const template = Handlebars.compile(s.template_config);
                     servicesList += template({ 
                         app: { name: app.name, port: appPort }, 
@@ -260,8 +263,14 @@ export class AppStore {
                 }
             }
 
+            // Track if hostPath is used via hooks
+            if (sessionVolumes[app.name] && sessionVolumes[app.name].length > 0) {
+                usedVolumeNames.add('hostPath');
+            }
+
             const appVolumes = app.volumes.length > 0 ? app.volumes : allVolumes.map(v => v.name);
             for (const vName of appVolumes) {
+                usedVolumeNames.add(vName);
                 if (vName === 'hostPath') continue;
                 const v = allVolumes.find(x => x.name === vName);
                 if (v && v.template_config) {
@@ -296,14 +305,14 @@ export class AppStore {
         let volumesConfig = volumesList ? `\n    services.k3s.manifests.app-volumes.content = [\n${volumesList}\n    ];\n` : '';
 
         for (const s of allServices) {
-            if (s.core_config && s.core_config.trim() !== '') {
+            if (usedServiceNames.has(s.name) && s.core_config && s.core_config.trim() !== '') {
                 const template = Handlebars.compile(s.core_config);
                 globalServicesConfig += template({ fields: s.fields, apps: installedApps });
             }
         }
 
         for (const v of allVolumes) {
-            if (v.core_config && v.core_config.trim() !== '') {
+            if (usedVolumeNames.has(v.name) && v.core_config && v.core_config.trim() !== '') {
                 const template = Handlebars.compile(v.core_config);
                 globalServicesConfig += template({ fields: v.fields, apps: installedApps });
             }
