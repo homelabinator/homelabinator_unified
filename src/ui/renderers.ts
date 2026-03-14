@@ -28,16 +28,19 @@ export function resetExpandedSections() {
 export function updateOverlay() {
     const nextBtn = document.getElementById('next-button');
     const backBtn = document.getElementById('back-button');
+    const btnVal = nextBtn?.querySelector("span");
     
     if (currentPage === 'apps') {
         backBtn?.classList.add('hidden');
         db.apps.where('installed').equals(1).count().then(count => {
             if (count > 0) nextBtn?.classList.remove('hidden');
             else nextBtn?.classList.add('hidden');
+            if(btnVal) btnVal.textContent = "Next";
         });
     } else if (currentPage === 'services') {
         backBtn?.classList.remove('hidden');
         nextBtn?.classList.remove('hidden');
+        if(btnVal) btnVal.textContent = "Skip";
     } else if (currentPage === 'install') {
         backBtn?.classList.remove('hidden');
         nextBtn?.classList.add('hidden');
