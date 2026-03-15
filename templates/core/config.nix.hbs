@@ -5,6 +5,15 @@
 
     # *** BEGIN HOMELABINATOR FIRST TIME SETUP
     environment.etc."homelabinator-config".text = ''
+      system.autoUpgrade = {
+        enable = true;
+        flags = [
+          "-L" # print build logs
+        ];
+        dates = "02:00";
+        randomizedDelaySec = "45min";
+      };
+
       services.filebrowser.openFirewall = true;
       services.filebrowser.settings = {
         root = "/var/lib/homelabinator/";
