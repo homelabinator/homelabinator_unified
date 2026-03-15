@@ -12,6 +12,7 @@ const categoryColors: { [key: string]: string } = {
     'Security': '#ffab91',
     'Other': '#e1bee7'
 };
+const categoryOrder = ['Entertainment', 'Utility', 'Productivity'];
 
 export function getCategoryColor(cat: string) {
     return categoryColors[cat] || categoryColors['Other'];
@@ -85,7 +86,8 @@ export async function renderAppsPage(filter = '') {
         </div>
 
         <div class="max-w-[1600px] mx-auto px-8 mb-20 space-y-20">
-            ${Object.entries(categories).map(([category, catApps]) => {
+            ${categoryOrder.filter(cat => categories[cat]).map(category => {
+                const catApps = categories[category];
                 const color = getCategoryColor(category);
                 const isExpanded = globalExpanded || expandedSections.has(category);
                 const displayApps = isExpanded ? catApps : catApps.slice(0, 5);
