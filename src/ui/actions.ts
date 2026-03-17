@@ -113,8 +113,8 @@ import { currentPage } from './router';
     
     // On Install Page
     const config = sessionStorage.getItem('homelabinator_config');
-    const downloadBtn = Array.from(document.querySelectorAll('.action-btn'))
-        .find(btn => btn.textContent.trim() === 'Download') as HTMLButtonElement || document.getElementById('iso-btn') as HTMLButtonElement;
+    const downloadBtn = document.getElementById('iso-btn') as HTMLButtonElement;
+    const progressBar = document.getElementById('iso-progress') as HTMLProgressElement;
     
     if (!downloadBtn) {
         console.error("Download button not found.");
@@ -131,8 +131,12 @@ import { currentPage } from './router';
     downloadBtn.disabled = true;
     downloadBtn.innerHTML = `
         <span class="loading loading-spinner"></span>
-        Your ISO is being built...
+        Building...
     `;
+    if (progressBar) {
+        progressBar.classList.remove('hidden');
+        progressBar.value = 0;
+    }
 
     try {
         const formData = new FormData();
@@ -146,21 +150,65 @@ import { currentPage } from './router';
 
         if (!response.ok) throw new Error('API request failed');
 
-        const data = await response.json();
-        if (data.url) {
-            downloadBtn.innerHTML = 'Download Ready';
-            downloadBtn.disabled = false;
-            downloadBtn.onclick = (e) => {
-                e.preventDefault();
-                window.location.href = data.url;
-            };
-        } else {
-            throw new Error('No URL in response');
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error('Failed to start build stream');
+
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        const processSegment = (segment: string) => {
+            const lines = segment.split(/\r?\n/);
+            let eventType = '';
+            let eventData = '';
+
+            for (const line of lines) {
+                if (line.startsWith('event:')) {
+                    eventType = line.substring(6).trim();
+                } else if (line.startsWith('data:')) {
+                    const data = line.substring(5).trim();
+                    eventData += (eventData ? '\n' : '') + data;
+                }
+            }
+
+            if (eventType === 'progress' && progressBar) {
+                const val = parseFloat(eventData);
+                if (!isNaN(val)) {
+                    progressBar.value = val * 100;
+                }
+            } else if (eventType === 'completed') {
+                downloadBtn.innerHTML = 'Download Ready';
+                downloadBtn.disabled = false;
+                downloadBtn.onclick = (e) => {
+                    e.preventDefault();
+                    window.location.href = eventData;
+                };
+                if (progressBar) progressBar.classList.add('hidden');
+            } else if (eventType === 'error') {
+                throw new Error(eventData);
+            }
+        };
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const segments = buffer.split(/\r?\n\r?\n/);
+            buffer = segments.pop() || '';
+
+            for (const segment of segments) {
+                if (segment.trim()) processSegment(segment);
+            }
+        }
+
+        if (buffer.trim()) {
+            processSegment(buffer);
         }
     } catch (error) {
         console.error("Error building ISO:", error);
         downloadBtn.innerHTML = 'Error Building ISO';
         downloadBtn.disabled = false;
+        if (progressBar) progressBar.classList.add('hidden');
         setTimeout(() => { downloadBtn.innerHTML = originalContent; }, 3000);
     }
 };

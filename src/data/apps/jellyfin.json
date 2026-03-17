@@ -6,7 +6,6 @@
   "replaces": "Netflix, Disney+",
   "tagline": "Own your media.",
   "screenshots": [
-    "https://www.figma.com/api/mcp/asset/e6bef305-6382-452a-b2aa-243a12375d33",
     "https://jellyfin.org/assets/images/10.8-library-9c07ba46877a03e749c0c8b5ed157e53.png"
   ],
   "icon_link": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg",
