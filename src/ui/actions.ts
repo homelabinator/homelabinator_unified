@@ -205,10 +205,6 @@ import { currentPage } from './router';
                         <span class="text-gray-500">Docker Downloads:</span>
                         <span class="font-bold">${app.docker_downloads || 'N/A'}</span>
                     </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">Size Requirements:</span>
-                        <span class="font-bold"> Based on Media</span>
-                    </div>
                 </div>
             </div>
         </div>
