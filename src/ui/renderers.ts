@@ -220,24 +220,25 @@ export async function renderInstallPage() {
                 <div class="bg-gray-100 p-6 flex flex-col items-center text-center border-r border-gray-300">
                     <img src="/assets/computer.png" class="rounded-full"/>
                     <h1 class="mt-5 mb-5 text-2xl font-semibold">1. Prepare</h1>
-                    <p>Insert a USB drive into <strong>this</strong> computer. Locate an old computer you wish to revive.</p>
+                    <p>Insert a blank USB drive into <strong>this</strong> computer. Locate an old computer you wish to revive. Make sure that the computer you choose has some way to connect to the internet (preferably with an wired ethernet cable).</p>
                 </div>
                 <div class="bg-gray-100 p-6 flex flex-col items-center text-center border-r border-gray-300">
                     <img src="/assets/dl.svg" class="rounded-full"/>
-                    <h1 class="mt-5 mb-5 text-2xl font-semibold">2. Download</h1>
-                    <p>Download the ISO file using the button below</p>
-                    <button onclick="window.getDownloadLink()" id="iso-btn" class="action-btn btn btn-lg bg-[#0088ff] text-white border-none rounded-xl px-10 mt-5">Download</button>
+                    <h1 class="mt-5 mb-5 text-2xl font-semibold">2. Install Balena Etcher</h1>
+                    <p>To install Homelabinator on your old computer, you need to utilize <u><a href="https://etcher.balena.io/" target="_blank" rel="noopener noreferrer">Balena Etcher</a></u> to prepare your USB. Install it, then come back to this page to download your ISO file.</p>
+                    <button onclick="window.open('https://etcher.balena.io', '_blank')" class="action-btn btn btn-lg bg-[#0088ff] text-white border-none rounded-xl px-10 mt-5">Download Balena Etcher</button>
                 </div>
                 <div class="bg-gray-100 p-6 flex flex-col items-center text-center border-r border-gray-300">
                     <img src="/assets/flash.svg" class="rounded-full"/>
                     <h1 class="mt-5 mb-5 text-2xl font-semibold">3. Flash</h1>
-                    <p>Open <a href="https://etcher.balena.io" target="_blank" class="text-blue-500 underline">Balena Etcher</a>. Select the downloaded ISO and your USB drive.</p>
-                    <button onclick="window.open('https://etcher.balena.io', '_blank')" class="action-btn btn btn-lg bg-[#0088ff] text-white border-none rounded-xl px-10 mt-5">Flash</button>
+                    <p>Download the ISO file using the button below. Then, open Balena Etcher and select the downloaded ISO and your USB drive.</p>
+                    <button onclick="window.getDownloadLink()" id="iso-btn" class="action-btn btn btn-lg bg-[#0088ff] text-white border-none rounded-xl px-10 mt-5">Download</button>
+<!--                    TODO: INSERT DAISYUI PROGRESS BAR HERE-->
                 </div>
                 <div class="bg-gray-100 p-6 flex flex-col items-center text-center">
                     <img src="/assets/retrocomputer.png" class="rounded-full"/>
                     <h1 class="mt-5 mb-5 text-2xl font-semibold">4. Boot</h1>
-                    <p>Eject USB and plug it into the old computer. Turn it on and press the Boot Menu key (usually F12 or Del).</p>
+                    <p>Eject the USB (it is ok if your USB drive is not recognized by your computer) and plug it into the <strong>old</strong> computer. Turn it on and press the key to get into the Boot Menu (typically F12, F2, or Delete).</p>
                 </div>
             </div>
         </div>
