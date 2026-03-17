@@ -233,7 +233,7 @@ export async function renderInstallPage() {
                     <h1 class="mt-5 mb-5 text-2xl font-semibold">3. Flash</h1>
                     <p>Download the ISO file using the button below. Then, open Balena Etcher and select the downloaded ISO and your USB drive.</p>
                     <button onclick="window.getDownloadLink()" id="iso-btn" class="action-btn btn btn-lg bg-[#0088ff] text-white border-none rounded-xl px-10 mt-5">Download</button>
-<!--                    TODO: INSERT DAISYUI PROGRESS BAR HERE-->
+                    <progress id="iso-progress" class="progress progress-primary w-full mt-4 hidden" value="0" max="100"></progress>
                 </div>
                 <div class="bg-gray-100 p-6 flex flex-col items-center text-center">
                     <img src="/assets/retrocomputer.png" class="rounded-full"/>
