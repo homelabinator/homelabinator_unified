@@ -156,38 +156,53 @@ import { currentPage } from './router';
         const decoder = new TextDecoder();
         let buffer = '';
 
+        const processSegment = (segment: string) => {
+            const lines = segment.split(/\r?\n/);
+            let eventType = '';
+            let eventData = '';
+
+            for (const line of lines) {
+                if (line.startsWith('event:')) {
+                    eventType = line.substring(6).trim();
+                } else if (line.startsWith('data:')) {
+                    const data = line.substring(5).trim();
+                    eventData += (eventData ? '\n' : '') + data;
+                }
+            }
+
+            if (eventType === 'progress' && progressBar) {
+                const val = parseFloat(eventData);
+                if (!isNaN(val)) {
+                    progressBar.value = val * 100;
+                }
+            } else if (eventType === 'completed') {
+                downloadBtn.innerHTML = 'Download Ready';
+                downloadBtn.disabled = false;
+                downloadBtn.onclick = (e) => {
+                    e.preventDefault();
+                    window.location.href = eventData;
+                };
+                if (progressBar) progressBar.classList.add('hidden');
+            } else if (eventType === 'error') {
+                throw new Error(eventData);
+            }
+        };
+
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
 
             buffer += decoder.decode(value, { stream: true });
-            const segments = buffer.split('\n\n');
+            const segments = buffer.split(/\r?\n\r?\n/);
             buffer = segments.pop() || '';
 
             for (const segment of segments) {
-                const lines = segment.split('\n');
-                let eventType = '';
-                let eventData = '';
-
-                for (const line of lines) {
-                    if (line.startsWith('event:')) eventType = line.substring(6).trim();
-                    if (line.startsWith('data:')) eventData = line.substring(5).trim();
-                }
-
-                if (eventType === 'progress' && progressBar) {
-                    progressBar.value = parseFloat(eventData);
-                } else if (eventType === 'completed') {
-                    downloadBtn.innerHTML = 'Download Ready';
-                    downloadBtn.disabled = false;
-                    downloadBtn.onclick = (e) => {
-                        e.preventDefault();
-                        window.location.href = eventData;
-                    };
-                    if (progressBar) progressBar.classList.add('hidden');
-                } else if (eventType === 'error') {
-                    throw new Error(eventData);
-                }
+                if (segment.trim()) processSegment(segment);
             }
+        }
+
+        if (buffer.trim()) {
+            processSegment(buffer);
         }
     } catch (error) {
         console.error("Error building ISO:", error);
