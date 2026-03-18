@@ -269,4 +269,5 @@ import { currentPage } from './router';
 (window as any).navigateBack = () => {
     if (currentPage === 'services') setPage('apps');
     else if (currentPage === 'install') setPage('services');
+    else if (currentPage === 'about') setPage('apps');
 };

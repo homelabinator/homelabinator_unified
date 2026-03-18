@@ -17,6 +17,6 @@ export const manifest = {
     "templates/services/portnodes"
   ],
   "volumes": [
-    "templates/volumes/config"
+    "templates/volumes/hostPath"
   ]
 };

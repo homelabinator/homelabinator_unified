@@ -1,4 +1,4 @@
-export type Page = 'apps' | 'services' | 'install';
+export type Page = 'apps' | 'services' | 'install' | 'about';
 
 export let currentPage: Page = 'apps';
 
@@ -14,5 +14,6 @@ export function getPageFromUrl(): Page {
     const path = window.location.pathname;
     if (path === '/services') return 'services';
     if (path === '/install') return 'install';
+    if (path === '/about') return 'about';
     return 'apps';
 }
