@@ -10,6 +10,7 @@ import {
     renderAppsPage
 } from './renderers';
 import { currentPage } from './router';
+(window as any).setPage = setPage;
 
 (window as any).toggleSection = (category: string) => {
     if (expandedSections.has(category)) expandedSections.delete(category);

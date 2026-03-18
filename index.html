@@ -7,7 +7,7 @@
 </head>
 <body class="min-h-screen bg-white font-sans text-black m-0">
     <header class="h-20 bg-[#eaeaea] flex items-center justify-between px-10 sticky top-0 z-[1000] shadow-sm">
-        <h1 class="text-4xl font-bold m-0 cursor-pointer" onclick="location.reload()">Homelabinator</h1>
+        <h1 class="text-4xl font-bold m-0 cursor-pointer" onclick="window.setPage('apps')">Homelabinator</h1>
         
         <div class="relative flex items-center bg-[#f9f9f9] border-[2.5px] border-black rounded-[20px] px-5 py-2 w-[500px]" id="search-container">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 mr-4">
@@ -17,7 +17,7 @@
         </div>
 
         <div class="flex gap-5">
-            <a href="#" class="no-underline text-black border-2 border-black px-6 py-2 rounded-xl font-medium">Install</a>
+            <button onclick="window.setPage('install')" class="no-underline text-black border-2 border-black px-6 py-2 rounded-xl font-medium cursor-pointer">Install</button>
         </div>
     </header>
 
