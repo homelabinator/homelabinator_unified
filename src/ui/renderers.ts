@@ -5,6 +5,7 @@ export let expandedSections: Set<string> = new Set();
 export let globalExpanded = false;
 
 const categoryColors: { [key: string]: string } = {
+    'Entertainment': '#ee5a62',
     'Utility': '#b0e6c3',
     'Media': '#bfbeff',
     'Communication': '#ee5a62',
