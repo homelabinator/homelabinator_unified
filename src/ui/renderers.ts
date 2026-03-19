@@ -30,8 +30,10 @@ export function updateOverlay() {
     const nextBtn = document.getElementById('next-button');
     const backBtn = document.getElementById('back-button');
     const btnVal = nextBtn?.querySelector("span");
+    const searchContainer = document.getElementById('search-container');
     
     if (currentPage === 'apps') {
+        searchContainer?.classList.remove('hidden');
         backBtn?.classList.add('hidden');
         db.apps.where('installed').equals(1).count().then(count => {
             if (count > 0) nextBtn?.classList.remove('hidden');
@@ -39,13 +41,60 @@ export function updateOverlay() {
             if(btnVal) btnVal.textContent = "Next";
         });
     } else if (currentPage === 'services') {
+        searchContainer?.classList.add('hidden');
         backBtn?.classList.remove('hidden');
         nextBtn?.classList.remove('hidden');
         if(btnVal) btnVal.textContent = "Skip";
-    } else if (currentPage === 'install') {
+    } else if (currentPage === 'install' || currentPage === 'about') {
+        searchContainer?.classList.add('hidden');
         backBtn?.classList.remove('hidden');
         nextBtn?.classList.add('hidden');
     }
+}
+
+export async function renderAboutPage() {
+    const content = document.getElementById('main-content');
+    if (!content) return;
+
+    content.innerHTML = `
+        <div class="max-w-4xl mx-auto px-8 py-20 space-y-12">
+            <h1 class="text-6xl font-bold text-center mb-16">About Homelabinator</h1>
+            
+            <div class="prose prose-xl max-w-none">
+                <p class="text-2xl leading-relaxed">
+                    Homelabinator is the easiest way to turn any old computer into a powerful personal server. 
+                    Whether you're looking to host your own cloud, media server, or development environment, 
+                    Homelabinator simplifies the process by providing a unified interface to select and 
+                    configure your favorite self-hosted applications.
+                </p>
+
+                <h2 class="text-4xl font-bold mt-12 mb-6">Our Mission</h2>
+                <p class="text-xl opacity-80 leading-relaxed">
+                    We believe that everyone should have control over their own data. The modern web is 
+                    increasingly centralized and controlled by a few large corporations. Homelabinator aims 
+                    to lower the barrier to entry for self-hosting, making it accessible to anyone with 
+                    an old laptop or desktop lying around.
+                </p>
+
+                <h2 class="text-4xl font-bold mt-12 mb-6">How it Works</h2>
+                <p class="text-xl opacity-80 leading-relaxed">
+                    Homelabinator generates a custom NixOS configuration based on your selections. 
+                    This configuration is then bundled into a bootable ISO that you can flash onto a 
+                    USB drive. When you boot your old computer from this USB, it automatically installs 
+                    the selected software and configures everything for you.
+                </p>
+
+                <div class="bg-[#efeef6] p-8 rounded-[30px] border-2 border-[#0088ff] mt-16">
+                    <h3 class="text-3xl font-bold mb-4 text-[#0088ff]">Open Source</h3>
+                    <p class="text-xl">
+                        Homelabinator is built on open-source technologies like NixOS, Docker, and many others. 
+                        We believe in transparency and community-driven development.
+                    </p>
+                </div>
+            </div>
+        </div>
+    `;
+    updateOverlay();
 }
 
 export async function renderAppsPage(filter = '') {
@@ -255,6 +304,7 @@ export async function render() {
     if (currentPage === 'apps') await renderAppsPage((document.getElementById('app-search') as HTMLInputElement)?.value || '');
     else if (currentPage === 'services') await renderServicesPage();
     else if (currentPage === 'install') await renderInstallPage();
+    else if (currentPage === 'about') await renderAboutPage();
 }
 
 export function setPage(page: any) {
