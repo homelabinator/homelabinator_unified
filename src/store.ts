@@ -27,7 +27,48 @@ export class AppStore {
                 db.volumes.clear()
             ]);
 
-            // 1. Populate Apps
+            // 1. Populate Services
+            const defaultServices: string[] = [];
+            try {
+                const servicesResponse = await fetch('/src/data/services/manifest.json');
+                if (servicesResponse.ok) {
+                    const serviceIds = await servicesResponse.json();
+                    for (const sId of serviceIds) {
+                        try {
+                            const metaResponse = await fetch(`/src/data/services/${sId}.json`);
+                            if (!metaResponse.ok) throw new Error(`Failed to fetch service meta for ${sId}`);
+                            const s = await metaResponse.json();
+
+                            if (s.onByDefault) {
+                                defaultServices.push(s.name);
+                            }
+
+                            let core = '', tmpl = '';
+                            try {
+                                const coreResp = await fetch(`/templates/services/${s.name}/core.nix.hbs`);
+                                if (coreResp.ok) core = await coreResp.text();
+                                const tmplResp = await fetch(`/templates/services/${s.name}/template.nix.hbs`);
+                                if (tmplResp.ok) tmpl = await tmplResp.text();
+                            } catch (e) {
+                                console.warn(`Could not load templates for service ${sId}:`, e);
+                            }
+                            await db.services.put({ 
+                                ...s, 
+                                core_config: core, 
+                                template_config: tmpl, 
+                                fields: {},
+                                fields_def: s.fields
+                            });
+                        } catch (e) {
+                            console.error(`Error loading service ${sId}:`, e);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading service manifest:', e);
+            }
+
+            // 2. Populate Apps
             try {
                 const response = await fetch('/src/data/apps/manifest.json');
                 if (response.ok) {
@@ -53,7 +94,7 @@ export class AppStore {
                                 name: appId,
                                 handlebars_config: nixConfig,
                                 installed: 0,
-                                services: [],
+                                services: [...defaultServices],
                                 volumes: [],
                                 fields: {}
                             });
@@ -64,42 +105,6 @@ export class AppStore {
                 }
             } catch (e) {
                 console.error('Error loading app manifest:', e);
-            }
-
-            // 2. Populate Services
-            try {
-                const servicesResponse = await fetch('/src/data/services/manifest.json');
-                if (servicesResponse.ok) {
-                    const serviceIds = await servicesResponse.json();
-                    for (const sId of serviceIds) {
-                        try {
-                            const metaResponse = await fetch(`/src/data/services/${sId}.json`);
-                            if (!metaResponse.ok) throw new Error(`Failed to fetch service meta for ${sId}`);
-                            const s = await metaResponse.json();
-
-                            let core = '', tmpl = '';
-                            try {
-                                const coreResp = await fetch(`/templates/services/${s.name}/core.nix.hbs`);
-                                if (coreResp.ok) core = await coreResp.text();
-                                const tmplResp = await fetch(`/templates/services/${s.name}/template.nix.hbs`);
-                                if (tmplResp.ok) tmpl = await tmplResp.text();
-                            } catch (e) {
-                                console.warn(`Could not load templates for service ${sId}:`, e);
-                            }
-                            await db.services.put({ 
-                                ...s, 
-                                core_config: core, 
-                                template_config: tmpl, 
-                                fields: {},
-                                fields_def: s.fields
-                            });
-                        } catch (e) {
-                            console.error(`Error loading service ${sId}:`, e);
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('Error loading service manifest:', e);
             }
 
             // 3. Populate Volumes
