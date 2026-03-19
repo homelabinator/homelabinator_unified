@@ -79,7 +79,7 @@ export async function renderAppsPage(filter = '') {
 
         <div class="max-w-[1600px] mx-auto px-8 mb-8 flex justify-end">
             ${anyCanExpand ? `
-                <button onclick="window.toggleGlobalExpand()" class="btn btn-ghost text-xl border-2 border-black rounded-xl px-6 cursor-pointer">
+                <button onclick="window.toggleGlobalExpand()" class="bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl py-3 px-8 rounded-[22px] text-2xl font-bold border-[5px] transition-all duration-300 cursor-pointer">
                     ${globalExpanded ? 'Collapse All' : 'Expand All'}
                 </button>
             ` : ''}
@@ -126,7 +126,7 @@ export async function renderAppsPage(filter = '') {
                         
                         ${hasMore ? `
                             <div class="flex justify-center mt-10">
-                                <button onclick="window.toggleSection('${category}')" class="bg-white/90 backdrop-blur-sm border-[4px] border-white text-gray-800 font-bold py-3 px-12 rounded-[25px] text-2xl shadow-lg hover:scale-105 transition-transform cursor-pointer">
+                                <button onclick="window.toggleSection('${category}')" class="bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl py-4 px-12 rounded-[22px] text-2xl font-bold border-[5px] transition-all duration-300 cursor-pointer">
                                     ${isExpanded ? 'Show Less' : 'Show More'}
                                 </button>
                             </div>
