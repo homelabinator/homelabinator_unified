@@ -20,124 +20,125 @@ export class AppStore {
         this.isInitializing = true;
 
         try {
+            // Clear existing data to ensure we always have the latest from manifest/JSON files on refresh
+            await Promise.all([
+                db.apps.clear(),
+                db.services.clear(),
+                db.volumes.clear()
+            ]);
+
             // 1. Populate Apps
-            if (await db.apps.count() === 0) {
-                try {
-                    const response = await fetch('/src/data/apps/manifest.json');
-                    if (response.ok) {
-                        const appIds = await response.json();
-                        for (const appId of appIds) {
-                            try {
-                                const metaResponse = await fetch(`/src/data/apps/${appId}.json`);
-                                if (!metaResponse.ok) throw new Error(`Failed to fetch app meta for ${appId}`);
-                                const metaData = await metaResponse.json();
+            try {
+                const response = await fetch('/src/data/apps/manifest.json');
+                if (response.ok) {
+                    const appIds = await response.json();
+                    for (const appId of appIds) {
+                        try {
+                            const metaResponse = await fetch(`/src/data/apps/${appId}.json`);
+                            if (!metaResponse.ok) throw new Error(`Failed to fetch app meta for ${appId}`);
+                            const metaData = await metaResponse.json();
 
-                                let nixConfig = '';
-                                if (metaData.hasTemplate) {
-                                    try {
-                                        const nixResponse = await fetch(`/templates/apps/${appId}.nix.hbs`);
-                                        if (nixResponse.ok) nixConfig = await nixResponse.text();
-                                    } catch (e) {
-                                        console.warn(`Could not load template for app ${appId}:`, e);
-                                    }
+                            let nixConfig = '';
+                            if (metaData.hasTemplate) {
+                                try {
+                                    const nixResponse = await fetch(`/templates/apps/${appId}.nix.hbs`);
+                                    if (nixResponse.ok) nixConfig = await nixResponse.text();
+                                } catch (e) {
+                                    console.warn(`Could not load template for app ${appId}:`, e);
                                 }
-
-                                await db.apps.put({
-                                    ...metaData,
-                                    name: appId,
-                                    handlebars_config: nixConfig,
-                                    installed: 0,
-                                    services: [],
-                                    volumes: [],
-                                    fields: {}
-                                });
-                            } catch (e) {
-                                console.error(`Error loading app ${appId}:`, e);
                             }
+
+                            await db.apps.put({
+                                ...metaData,
+                                name: appId,
+                                handlebars_config: nixConfig,
+                                installed: 0,
+                                services: [],
+                                volumes: [],
+                                fields: {}
+                            });
+                        } catch (e) {
+                            console.error(`Error loading app ${appId}:`, e);
                         }
                     }
-                } catch (e) {
-                    console.error('Error loading app manifest:', e);
                 }
+            } catch (e) {
+                console.error('Error loading app manifest:', e);
             }
 
             // 2. Populate Services
-            if (await db.services.count() === 0) {
-                try {
-                    const servicesResponse = await fetch('/src/data/services/manifest.json');
-                    if (servicesResponse.ok) {
-                        const serviceIds = await servicesResponse.json();
-                        for (const sId of serviceIds) {
-                            try {
-                                const metaResponse = await fetch(`/src/data/services/${sId}.json`);
-                                if (!metaResponse.ok) throw new Error(`Failed to fetch service meta for ${sId}`);
-                                const s = await metaResponse.json();
+            try {
+                const servicesResponse = await fetch('/src/data/services/manifest.json');
+                if (servicesResponse.ok) {
+                    const serviceIds = await servicesResponse.json();
+                    for (const sId of serviceIds) {
+                        try {
+                            const metaResponse = await fetch(`/src/data/services/${sId}.json`);
+                            if (!metaResponse.ok) throw new Error(`Failed to fetch service meta for ${sId}`);
+                            const s = await metaResponse.json();
 
-                                let core = '', tmpl = '';
-                                try {
-                                    const coreResp = await fetch(`/templates/services/${s.name}/core.nix.hbs`);
-                                    if (coreResp.ok) core = await coreResp.text();
-                                    const tmplResp = await fetch(`/templates/services/${s.name}/template.nix.hbs`);
-                                    if (tmplResp.ok) tmpl = await tmplResp.text();
-                                } catch (e) {
-                                    console.warn(`Could not load templates for service ${sId}:`, e);
-                                }
-                                await db.services.put({ 
-                                    ...s, 
-                                    core_config: core, 
-                                    template_config: tmpl, 
-                                    fields: {},
-                                    fields_def: s.fields
-                                });
+                            let core = '', tmpl = '';
+                            try {
+                                const coreResp = await fetch(`/templates/services/${s.name}/core.nix.hbs`);
+                                if (coreResp.ok) core = await coreResp.text();
+                                const tmplResp = await fetch(`/templates/services/${s.name}/template.nix.hbs`);
+                                if (tmplResp.ok) tmpl = await tmplResp.text();
                             } catch (e) {
-                                console.error(`Error loading service ${sId}:`, e);
+                                console.warn(`Could not load templates for service ${sId}:`, e);
                             }
+                            await db.services.put({ 
+                                ...s, 
+                                core_config: core, 
+                                template_config: tmpl, 
+                                fields: {},
+                                fields_def: s.fields
+                            });
+                        } catch (e) {
+                            console.error(`Error loading service ${sId}:`, e);
                         }
                     }
-                } catch (e) {
-                    console.error('Error loading service manifest:', e);
                 }
+            } catch (e) {
+                console.error('Error loading service manifest:', e);
             }
 
             // 3. Populate Volumes
-            if (await db.volumes.count() === 0) {
-                try {
-                    const volumesResponse = await fetch('/src/data/volumes/manifest.json');
-                    if (volumesResponse.ok) {
-                        const volumeIds = await volumesResponse.json();
-                        for (const vId of volumeIds) {
-                            try {
-                                const metaResponse = await fetch(`/src/data/volumes/${vId}.json`);
-                                if (!metaResponse.ok) throw new Error(`Failed to fetch volume meta for ${vId}`);
-                                const v = await metaResponse.json();
+            try {
+                const volumesResponse = await fetch('/src/data/volumes/manifest.json');
+                if (volumesResponse.ok) {
+                    const volumeIds = await volumesResponse.json();
+                    for (const vId of volumeIds) {
+                        try {
+                            const metaResponse = await fetch(`/src/data/volumes/${vId}.json`);
+                            if (!metaResponse.ok) throw new Error(`Failed to fetch volume meta for ${vId}`);
+                            const v = await metaResponse.json();
 
-                                let core = '', tmpl = '', mount = '';
-                                try {
-                                    const coreResp = await fetch(`/templates/volumes/${v.name}/core.nix.hbs`);
-                                    if (coreResp.ok) core = await coreResp.text();
-                                    const tmplResp = await fetch(`/templates/volumes/${v.name}/template.nix.hbs`);
-                                    if (tmplResp.ok) tmpl = await tmplResp.text();
-                                    const mountResp = await fetch(`/templates/volumes/${v.name}/mount.nix.hbs`);
-                                    if (mountResp.ok) mount = await mountResp.text();
-                                } catch (e) {
-                                    console.warn(`Could not load templates for volume ${vId}:`, e);
-                                }
-                                await db.volumes.put({ 
-                                    ...v, 
-                                    core_config: core, 
-                                    template_config: tmpl, 
-                                    mount_config: mount,
-                                    fields: { path: '/var/lib/homelabinator' },
-                                    fields_def: v.fields
-                                });
+                            let core = '', tmpl = '', mount = '';
+                            try {
+                                const coreResp = await fetch(`/templates/volumes/${v.name}/core.nix.hbs`);
+                                if (coreResp.ok) core = await coreResp.text();
+                                const tmplResp = await fetch(`/templates/volumes/${v.name}/template.nix.hbs`);
+                                if (tmplResp.ok) tmpl = await tmplResp.text();
+                                const mountResp = await fetch(`/templates/volumes/${v.name}/mount.nix.hbs`);
+                                if (mountResp.ok) mount = await mountResp.text();
                             } catch (e) {
-                                console.error(`Error loading volume ${vId}:`, e);
+                                console.warn(`Could not load templates for volume ${vId}:`, e);
                             }
+                            await db.volumes.put({ 
+                                ...v, 
+                                core_config: core, 
+                                template_config: tmpl, 
+                                mount_config: mount,
+                                fields: { path: '/var/lib/homelabinator' },
+                                fields_def: v.fields
+                            });
+                        } catch (e) {
+                            console.error(`Error loading volume ${vId}:`, e);
                         }
                     }
-                } catch (e) {
-                    console.error('Error loading volume manifest:', e);
                 }
+            } catch (e) {
+                console.error('Error loading volume manifest:', e);
             }
 
         } finally {
