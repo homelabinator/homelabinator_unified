@@ -7,10 +7,14 @@ import {
     setGlobalExpanded, 
     globalExpanded, 
     resetExpandedSections,
-    renderAppsPage
+    renderAppsPage,
+    navigateNext,
+    navigateBack
 } from './renderers';
 import { currentPage } from './router';
 (window as any).setPage = setPage;
+(window as any).navigateNext = navigateNext;
+(window as any).navigateBack = navigateBack;
 
 (window as any).toggleSection = (category: string) => {
     if (expandedSections.has(category)) expandedSections.delete(category);
@@ -261,13 +265,3 @@ import { currentPage } from './router';
     modal.showModal();
 };
 
-(window as any).navigateNext = () => {
-    if (currentPage === 'apps') setPage('services');
-    else if (currentPage === 'services') (window as any).getDownloadLink();
-};
-
-(window as any).navigateBack = () => {
-    if (currentPage === 'services') setPage('apps');
-    else if (currentPage === 'install') setPage('services');
-    else if (currentPage === 'about') setPage('apps');
-};

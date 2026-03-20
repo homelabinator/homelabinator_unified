@@ -1,8 +1,12 @@
 export type Page = 'apps' | 'services' | 'install' | 'about';
 
 export let currentPage: Page = 'apps';
+export let previousPage: Page = 'apps';
 
 export function setCurrentPage(page: Page) {
+    if (page !== currentPage && currentPage !== 'about') {
+        previousPage = currentPage;
+    }
     currentPage = page;
     const path = page === 'apps' ? '/' : `/${page}`;
     if (window.location.pathname !== path) {

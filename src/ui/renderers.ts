@@ -1,5 +1,5 @@
 import { db, type AppEntry } from '../db';
-import { currentPage, setCurrentPage } from './router';
+import { currentPage, setCurrentPage, previousPage } from './router';
 
 export let expandedSections: Set<string> = new Set();
 export let globalExpanded = false;
@@ -319,4 +319,15 @@ export function setPage(page: any) {
     setCurrentPage(page);
     render();
     window.scrollTo(0, 0);
+}
+
+export function navigateNext() {
+    if (currentPage === 'apps') setPage('services');
+    else if (currentPage === 'services') (window as any).getDownloadLink();
+}
+
+export function navigateBack() {
+    if (currentPage === 'about') setPage(previousPage);
+    else if (currentPage === 'services') setPage('apps');
+    else if (currentPage === 'install') setPage('services');
 }
