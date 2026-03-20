@@ -63,35 +63,73 @@ export async function renderAboutPage() {
             
             <div class="prose prose-xl max-w-none">
                 <p class="text-2xl leading-relaxed">
-                    Homelabinator is the easiest way to turn any old computer into a powerful personal server. 
-                    Whether you're looking to host your own cloud, media server, or development environment, 
-                    Homelabinator simplifies the process by providing a unified interface to select and 
-                    configure your favorite self-hosted applications.
+                    Homelabinator is the easiest way for you to be able to replace your subscriptions with free alternatives. How you might ask? Through self-hosting.
                 </p>
 
-                <h2 class="text-4xl font-bold mt-12 mb-6">Our Mission</h2>
+                <h2 class="text-4xl font-bold mt-12 mb-6">What is "self-hosting"?</h2>
                 <p class="text-xl opacity-80 leading-relaxed">
-                    We believe that everyone should have control over their own data. The modern web is 
-                    increasingly centralized and controlled by a few large corporations. Homelabinator aims 
-                    to lower the barrier to entry for self-hosting, making it accessible to anyone with 
-                    an old laptop or desktop lying around.
+                    To understand self-hosting it takes a bit of context on how the internet works. Say you want to listen to music from Spotify. Your phone connects to the internet, and the internet is connected to some server that is hosting "spotify.com".
                 </p>
 
-                <h2 class="text-4xl font-bold mt-12 mb-6">How it Works</h2>
-                <p class="text-xl opacity-80 leading-relaxed">
-                    Homelabinator generates a custom NixOS configuration based on your selections. 
-                    This configuration is then bundled into a bootable ISO that you can flash onto a 
-                    USB drive. When you boot your old computer from this USB, it automatically installs 
-                    the selected software and configures everything for you.
-                </p>
-
-                <div class="bg-[#efeef6] p-8 rounded-[30px] border-2 border-[#0088ff] mt-16">
-                    <h3 class="text-3xl font-bold mb-4 text-[#0088ff]">Open Source</h3>
-                    <p class="text-xl">
-                        Homelabinator is built on open-source technologies like NixOS, Docker, and many others. 
-                        We believe in transparency and community-driven development.
-                    </p>
+                <div class="my-8">
+                    <img src="/assets/about-1.png" alt="About Page Diagram for Using Spotify" class="w-full rounded-[30px] border-2 border-black shadow-lg" />
+                    <p class="text-center italic opacity-60 mt-4">(This is a massive over simplification)</p>
                 </div>
+
+                <p class="text-xl opacity-80 leading-relaxed">
+                    But what if that server was an old computer, that was in your living room? Now it's just a matter of finding the right software that has the same functionality has Spotify. It just so happens there is an excellent equivalent called Navidrome, and not only that, it is free!
+                </p>
+
+                <div class="my-8">
+                    <img src="/assets/about-2.png" alt="About Page Diagram for Navidrome" class="w-full rounded-[30px] border-2 border-black shadow-lg" />
+                </div>
+
+                <p class="text-xl opacity-80 leading-relaxed">
+                    This applies to all kinds of services too, not just Spotify. Take a look at the home page to see what all can be replaced!
+                </p>
+
+                <h2 class="text-4xl font-bold mt-12 mb-6">Technical Details</h2>
+                <p class="text-xl opacity-80 leading-relaxed">
+                    If technical jargon scares you, then do not bother reading this, but those who are curious, press on!
+                </p>
+
+                <h3 class="text-3xl font-bold mt-12 mb-4">How does Homelabinator work?</h3>
+                <p class="text-xl opacity-80 leading-relaxed">
+                    Built on the shoulders of the giants that are <a href="https://nixos.org/" target="_blank" class="text-[#0088ff] font-bold">NixOS</a> and <a href="https://k3s.io/" target="_blank" class="text-[#0088ff] font-bold">K3s</a>, Homelabinator is an opinionated customization of NixOS. When you add the apps that you want to self-host, we create an bootable ISO that you can flash onto a USB drive. When you boot your old computer from this USB, it automatically installs the selected software and configures everything for you.
+                </p>
+
+                <h3 class="text-3xl font-bold mt-12 mb-4">Minimum Requirements</h3>
+                <p class="text-xl opacity-80 leading-relaxed">
+                    The following is the minimum requirements for an "old" computer to be able to run Homelabinator.
+                </p>
+
+                <div class="bg-[#efeef6] p-8 rounded-[30px] border-2 border-black my-8 overflow-hidden">
+                    <table class="w-full text-xl border-collapse">
+                        <thead>
+                            <tr class="border-b-2 border-black/10">
+                                <th class="text-left py-4 px-4 font-bold">Component</th>
+                                <th class="text-left py-4 px-4 font-bold">Requirement</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-black/5">
+                            <tr><td class="py-4 px-4">CPU</td><td class="py-4 px-4">Dual Core x64</td></tr>
+                            <tr><td class="py-4 px-4">Memory</td><td class="py-4 px-4">2GB</td></tr>
+                            <tr><td class="py-4 px-4">Storage</td><td class="py-4 px-4">16GB</td></tr>
+                            <tr><td class="py-4 px-4">USB Stick*</td><td class="py-4 px-4">2GB</td></tr>
+                            <tr><td class="py-4 px-4">Internet Connection</td><td class="py-4 px-4">Required</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="space-y-2">
+                    <p class="text-lg opacity-60 italic">*Only needed one time for installing the OS.</p>
+                    <p class="text-lg opacity-60 italic text-[#0088ff]">NOTE: The amount of storage varies with the amount of apps that you add.</p>
+                </div>
+
+                <h3 class="text-3xl font-bold mt-12 mb-4">Don't trust us?</h3>
+                <p class="text-xl opacity-80 leading-relaxed">
+                    All of our code is publicly accessible on <a href="https://github.com/homelabinator" target="_blank" class="text-[#0088ff] font-bold">our GitHub organization</a>! Feel free to make any issues or pull requests!
+                </p>
             </div>
         </div>
     `;
