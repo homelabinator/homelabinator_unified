@@ -5,7 +5,7 @@ export default defineConfig({
   server: {
     port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT) : 3000,
     open: true,
-    allowedHosts: ["beta.homelabinator.com"]
+    allowedHosts: ["beta.homelabinator.com", "homelabinator.com"]
   },
   build: {
     outDir: 'dist'
