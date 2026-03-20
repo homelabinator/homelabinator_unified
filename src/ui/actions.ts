@@ -229,7 +229,7 @@ import { currentPage } from './router';
                     <div class="w-[120px] h-[120px] bg-black rounded-[23px] flex items-center justify-center overflow-hidden p-4">
                         <img src="${app.icon_link || 'https://picsum.photos/120/120'}" class="w-full h-full object-contain" />
                     </div>
-                    <h1 class="text-7xl lg:text-8xl font-bold">${app.title}</h1>
+                    <h1 class="${app.title.length > 12 ? 'text-4xl lg:text-5xl' : 'text-7xl lg:text-8xl'} font-bold">${app.title}</h1>
                 </div>
                 <p class="text-3xl lg:text-4xl leading-snug mb-6">${app.tagline || ''}</p>
                 <div class="prose prose-xl max-w-none mb-10 text-gray-700">${app.content}</div>

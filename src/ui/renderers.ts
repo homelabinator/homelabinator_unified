@@ -160,7 +160,7 @@ export async function renderAppsPage(filter = '') {
                                     <div class="w-[120px] h-[120px] bg-black rounded-[28px] mx-auto mb-6 flex items-center justify-center overflow-hidden p-3 shadow-xl">
                                         <img src="${app.icon_link || 'https://picsum.photos/120/120'}" class="w-full h-full object-contain" />
                                     </div>
-                                    <h3 class="text-3xl font-bold mb-2">${app.title}</h3>
+                                    <h3 class="${app.title.length > 12 ? 'text-2xl' : 'text-3xl'} font-bold mb-2">${app.title}</h3>
                                     <p class="text-xl mb-2 opacity-80 leading-tight h-12 overflow-hidden">${app.tagline || ''}</p>
                                     <p class="text-lg italic mb-6 opacity-60 h-14 overflow-hidden">${app.replaces ? `Replaces: ${app.replaces}` : ''}</p>
                                     
@@ -220,7 +220,7 @@ export function renderServiceVolumeCard(item: any, type: 'service' | 'volume', i
         <div class="bg-white border-[5px] border-black rounded-[30px] p-8 shadow-xl">
             <div class="flex flex-col lg:flex-row justify-between items-start gap-8">
                 <div class="flex-1">
-                    <h3 class="text-4xl font-bold mb-2">${item.title}</h3>
+                    <h3 class="${item.title.length > 12 ? 'text-2xl' : 'text-4xl'} font-bold mb-2">${item.title}</h3>
                     <p class="text-2xl text-gray-600 mb-6">${item.description}</p>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
