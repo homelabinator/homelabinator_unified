@@ -16,6 +16,8 @@ import { currentPage } from './router';
 (window as any).navigateNext = navigateNext;
 (window as any).navigateBack = navigateBack;
 
+const API_URL = (process.env as any).ENV_NAME === 'prod' ? 'https://api.homelabinator.com' : 'https://beta-api.homelabinator.com';
+
 (window as any).toggleSection = (category: string) => {
     if (expandedSections.has(category)) expandedSections.delete(category);
     else expandedSections.add(category);
@@ -148,7 +150,7 @@ import { currentPage } from './router';
         const blob = new Blob([config], { type: 'text/plain' });
         formData.append('file', blob, 'text-snippet.txt');
 
-        const response = await fetch('https://api.homelabinator.com/generate-iso', {
+        const response = await fetch(`${API_URL}/generate-iso`, {
             method: 'POST',
             body: formData
         });

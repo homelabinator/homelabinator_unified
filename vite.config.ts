@@ -10,6 +10,9 @@ export default defineConfig({
   build: {
     outDir: 'dist'
   },
+  define: {
+    'process.env.ENV_NAME': JSON.stringify(process.env.ENV_NAME)
+  },
   plugins: [
     {
       name: 'html-transform',
