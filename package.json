@@ -12,8 +12,8 @@
     "test:website": "http-server . -c-1 -o tests/integration/test_website/",
     "test:vm": "nix-build '<nixpkgs/nixos>' -A vm -I nixpkgs=channel:nixos-25.11 -I nixos-config=./tests/integration/playground/config.nix && QEMU_KERNEL_PARAMS=console=ttyS0 ./result/bin/run-nixos-vm -nographic -m 8192 -smp 2; reset",
     "test:vm:reset": "rm -f result nixos*",
-    "app": "vite",
-    "prod": "ENV_NAME=prod vite",
+    "dev": "ENV_NAME=dev VITE_PORT=3000 vite",
+    "prod": "ENV_NAME=prod VITE_PORT=3001 vite",
     "convert": "node convert_md_to_json.js"
   },
   "keywords": [],

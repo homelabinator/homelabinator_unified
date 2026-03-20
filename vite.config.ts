@@ -3,7 +3,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   root: '.',
   server: {
-    port: 3000,
+    port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT) : 3000,
     open: true,
     allowedHosts: ["beta.homelabinator.com"]
   },
