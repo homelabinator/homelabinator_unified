@@ -27,6 +27,7 @@ export interface ServiceEntry {
     name: string;
     title: string;
     description: string;
+    onByDefault?: boolean;
     core_config: string;
     template_config: string;
     fields_def: any[]; // Definition of fields

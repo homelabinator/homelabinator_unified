@@ -1,6 +1,7 @@
 {
   "title": "Tailscale",
   "description": "Zero config VPN. Access your homelab from anywhere.",
+  "onByDefault": false,
   "fields": [
     {
       "name": "clientId",
