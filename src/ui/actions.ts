@@ -243,7 +243,7 @@ import { currentPage } from './router';
                     ${app.hasTemplate ? `onclick="window.toggleApp('${app.name}')"` : 'disabled'}
                     class="mt-auto w-full py-4 rounded-[22px] text-2xl font-bold border-[5px] transition-all duration-300 ${!app.hasTemplate ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed' : app.installed ? 'bg-black border-black text-white scale-[0.98] opacity-40 cursor-pointer' : 'bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl cursor-pointer'}"
                 >
-                    ${!app.hasTemplate ? 'TBD' : app.installed ? 'Added' : 'Add'}
+                    ${!app.hasTemplate ? 'TBA' : app.installed ? 'Added' : 'Add'}
                 </button>
                 <div class="mt-auto w-full rounded-[22px] border-[5px] border-gray-200 bg-gray-50 p-4 text-lg space-y-1">
                     <div class="flex justify-between">
