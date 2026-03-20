@@ -15,5 +15,5 @@
   "github_stars": 55900,
   "content": "Network-wide ad blocking via your own Linux hardware. The Pi-hole® is a DNS sinkhole that protects your devices from unwanted content without installing any client-side software.",
   "id": "pi-hole",
-  "hasTemplate": true
+  "hasTemplate": false
 }

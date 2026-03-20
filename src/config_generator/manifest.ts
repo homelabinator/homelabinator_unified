@@ -2,7 +2,6 @@ export const manifest = {
   "apps": [
     "templates/apps/vaultwarden.nix.hbs",
     "templates/apps/syncthing.nix.hbs",
-    "templates/apps/pi-hole.nix.hbs",
     "templates/apps/navidrome.nix.hbs",
     "templates/apps/n8n.nix.hbs",
     "templates/apps/mealie.nix.hbs",
