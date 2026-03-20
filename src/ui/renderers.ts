@@ -103,6 +103,13 @@ export async function renderAppsPage(filter = '') {
     if (!appGrid) return;
 
     let apps = await db.apps.toArray();
+    apps.sort((a, b) => {
+        if (a.hasTemplate && !b.hasTemplate) return -1;
+        if (!a.hasTemplate && b.hasTemplate) return 1;
+        const starsA = Number(a.github_stars) || 0;
+        const starsB = Number(b.github_stars) || 0;
+        return starsB - starsA;
+    });
     if (filter) {
         const query = filter.toLowerCase();
         apps = apps.filter(app => 
