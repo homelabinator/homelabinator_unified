@@ -58,76 +58,76 @@ export async function renderAboutPage() {
     if (!content) return;
 
     content.innerHTML = `
-        <div class="max-w-4xl mx-auto px-8 py-20 space-y-12">
-            <h1 class="text-6xl font-bold text-center mb-16">About Homelabinator</h1>
+        <div class="max-w-4xl mx-auto px-4 md:px-8 py-10 md:py-20 space-y-8 md:space-y-12">
+            <h1 class="text-4xl md:text-6xl font-bold text-center mb-10 md:mb-16">About Homelabinator</h1>
             
-            <div class="prose prose-xl max-w-none">
-                <p class="text-2xl leading-relaxed">
+            <div class="prose prose-lg md:prose-xl max-w-none">
+                <p class="text-xl md:text-2xl leading-relaxed">
                     Homelabinator is the easiest way for you to be able to replace your subscriptions with free alternatives. How you might ask? Through self-hosting.
                 </p>
 
-                <h2 class="text-4xl font-bold mt-12 mb-6">What is "self-hosting"?</h2>
-                <p class="text-xl opacity-80 leading-relaxed">
+                <h2 class="text-2xl md:text-4xl font-bold mt-8 md:mt-12 mb-4 md:mb-6">What is "self-hosting"?</h2>
+                <p class="text-lg md:text-xl opacity-80 leading-relaxed">
                     To understand self-hosting it takes a bit of context on how the internet works. Say you want to listen to music from Spotify. Your phone connects to the internet, and the internet is connected to some server that is hosting "spotify.com".
                 </p>
 
-                <div class="my-8">
-                    <img src="/assets/about-1.png" alt="About Page Diagram for Using Spotify" class="w-full rounded-[30px] border-2 border-black shadow-lg" />
-                    <p class="text-center italic opacity-60 mt-4">(This is a massive over simplification)</p>
+                <div class="my-6 md:my-8">
+                    <img src="/assets/about-1.png" alt="About Page Diagram for Using Spotify" class="w-full rounded-[20px] md:rounded-[30px] border-2 border-black shadow-lg" />
+                    <p class="text-center italic opacity-60 mt-4 text-sm md:text-base">(This is a massive over simplification)</p>
                 </div>
 
-                <p class="text-xl opacity-80 leading-relaxed">
+                <p class="text-lg md:text-xl opacity-80 leading-relaxed">
                     But what if that server was an old computer, that was in your living room? Now it's just a matter of finding the right software that has the same functionality has Spotify. It just so happens there is an excellent equivalent called Navidrome, and not only that, it is free!
                 </p>
 
-                <div class="my-8">
-                    <img src="/assets/about-2.png" alt="About Page Diagram for Navidrome" class="w-full rounded-[30px] border-2 border-black shadow-lg" />
+                <div class="my-6 md:my-8">
+                    <img src="/assets/about-2.png" alt="About Page Diagram for Navidrome" class="w-full rounded-[20px] md:rounded-[30px] border-2 border-black shadow-lg" />
                 </div>
 
-                <p class="text-xl opacity-80 leading-relaxed">
+                <p class="text-lg md:text-xl opacity-80 leading-relaxed">
                     This applies to all kinds of services too, not just Spotify. Take a look at the home page to see what all can be replaced!
                 </p>
 
-                <h2 class="text-4xl font-bold mt-12 mb-6">Technical Details</h2>
-                <p class="text-xl opacity-80 leading-relaxed">
+                <h2 class="text-2xl md:text-4xl font-bold mt-8 md:mt-12 mb-4 md:mb-6">Technical Details</h2>
+                <p class="text-lg md:text-xl opacity-80 leading-relaxed">
                     If technical jargon scares you, then do not bother reading this, but those who are curious, press on!
                 </p>
 
-                <h3 class="text-3xl font-bold mt-12 mb-4">How does Homelabinator work?</h3>
-                <p class="text-xl opacity-80 leading-relaxed">
+                <h3 class="text-xl md:text-3xl font-bold mt-8 md:mt-12 mb-4">How does Homelabinator work?</h3>
+                <p class="text-lg md:text-xl opacity-80 leading-relaxed">
                     Built on the shoulders of the giants that are <a href="https://nixos.org/" target="_blank" class="text-[#0088ff] font-bold">NixOS</a> and <a href="https://k3s.io/" target="_blank" class="text-[#0088ff] font-bold">K3s</a>, Homelabinator is an opinionated customization of NixOS. When you add the apps that you want to self-host, we create an bootable ISO that you can flash onto a USB drive. When you boot your old computer from this USB, it automatically installs the selected software and configures everything for you.
                 </p>
 
-                <h3 class="text-3xl font-bold mt-12 mb-4">Minimum Requirements</h3>
-                <p class="text-xl opacity-80 leading-relaxed">
+                <h3 class="text-xl md:text-3xl font-bold mt-8 md:mt-12 mb-4">Minimum Requirements</h3>
+                <p class="text-lg md:text-xl opacity-80 leading-relaxed">
                     The following is the minimum requirements for an "old" computer to be able to run Homelabinator.
                 </p>
 
-                <div class="bg-[#efeef6] p-8 rounded-[30px] border-2 border-black my-8 overflow-hidden">
-                    <table class="w-full text-xl border-collapse">
+                <div class="bg-[#efeef6] p-4 md:p-8 rounded-[20px] md:rounded-[30px] border-2 border-black my-6 md:my-8 overflow-x-auto">
+                    <table class="w-full text-lg md:text-xl border-collapse min-w-[300px]">
                         <thead>
                             <tr class="border-b-2 border-black/10">
-                                <th class="text-left py-4 px-4 font-bold">Component</th>
-                                <th class="text-left py-4 px-4 font-bold">Requirement</th>
+                                <th class="text-left py-4 px-2 md:px-4 font-bold">Component</th>
+                                <th class="text-left py-4 px-2 md:px-4 font-bold">Requirement</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-black/5">
-                            <tr><td class="py-4 px-4">CPU</td><td class="py-4 px-4">Dual Core x64</td></tr>
-                            <tr><td class="py-4 px-4">Memory</td><td class="py-4 px-4">2GB</td></tr>
-                            <tr><td class="py-4 px-4">Storage</td><td class="py-4 px-4">16GB</td></tr>
-                            <tr><td class="py-4 px-4">USB Stick*</td><td class="py-4 px-4">2GB</td></tr>
-                            <tr><td class="py-4 px-4">Internet Connection</td><td class="py-4 px-4">Required</td></tr>
+                            <tr><td class="py-4 px-2 md:px-4">CPU</td><td class="py-4 px-2 md:px-4">Dual Core x64</td></tr>
+                            <tr><td class="py-4 px-2 md:px-4">Memory</td><td class="py-4 px-2 md:px-4">2GB</td></tr>
+                            <tr><td class="py-4 px-2 md:px-4">Storage</td><td class="py-4 px-2 md:px-4">16GB</td></tr>
+                            <tr><td class="py-4 px-2 md:px-4">USB Stick*</td><td class="py-4 px-2 md:px-4">2GB</td></tr>
+                            <tr><td class="py-4 px-2 md:px-4">Internet Connection</td><td class="py-4 px-2 md:px-4">Required</td></tr>
                         </tbody>
                     </table>
                 </div>
 
                 <div class="space-y-2">
-                    <p class="text-lg opacity-60 italic">*Only needed one time for installing the OS.</p>
-                    <p class="text-lg opacity-60 italic text-[#0088ff]">NOTE: The amount of storage varies with the amount of apps that you add.</p>
+                    <p class="text-base md:text-lg opacity-60 italic">*Only needed one time for installing the OS.</p>
+                    <p class="text-base md:text-lg opacity-60 italic text-[#0088ff]">NOTE: The amount of storage varies with the amount of apps that you add.</p>
                 </div>
 
-                <h3 class="text-3xl font-bold mt-12 mb-4">Don't trust us?</h3>
-                <p class="text-xl opacity-80 leading-relaxed">
+                <h3 class="text-xl md:text-3xl font-bold mt-8 md:mt-12 mb-4">Don't trust us?</h3>
+                <p class="text-lg md:text-xl opacity-80 leading-relaxed">
                     All of our code is publicly accessible on <a href="https://github.com/homelabinator" target="_blank" class="text-[#0088ff] font-bold">our GitHub organization</a>! Feel free to make any issues or pull requests!
                 </p>
             </div>
@@ -167,12 +167,12 @@ export async function renderAppsPage(filter = '') {
     const anyCanExpand = Object.values(categories).some(list => list.length > 5);
 
     appGrid.innerHTML = `
-        <div class="text-center py-20 px-5">
-            <h1 class="text-[96px] font-bold m-0 leading-tight">The easiest way to selfhost.</h1>
-            <p class="text-5xl font-light mt-2.5">Create your own homelab OS</p>
+        <div class="text-center py-10 md:py-20 px-5">
+            <h1 class="text-[40px] md:text-[96px] font-bold m-0 leading-tight">The easiest way to selfhost.</h1>
+            <p class="text-xl md:text-5xl font-light mt-2.5">Create your own homelab OS</p>
         </div>
 
-        <div class="max-w-[1600px] mx-auto px-8 mb-8 flex justify-end">
+        <div class="max-w-[1600px] mx-auto px-8 mb-8 hidden md:flex justify-end">
             ${anyCanExpand ? `
                 <button onclick="window.toggleGlobalExpand()" class="bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl py-3 px-8 rounded-[22px] text-2xl font-bold border-[5px] transition-all duration-300 cursor-pointer">
                     ${globalExpanded ? 'Collapse All' : 'Expand All'}
@@ -180,7 +180,7 @@ export async function renderAppsPage(filter = '') {
             ` : ''}
         </div>
 
-        <div class="max-w-[1600px] mx-auto px-8 mb-20 space-y-20">
+        <div class="max-w-[1600px] mx-auto px-4 md:px-8 mb-20 space-y-10 md:space-y-20">
             ${categoryOrder.filter(cat => categories[cat]).map(category => {
                 const catApps = categories[category];
                 const color = getCategoryColor(category);
@@ -190,28 +190,28 @@ export async function renderAppsPage(filter = '') {
 
                 return `
                 <div class="category-section">
-                    <div class="inline-block px-10 py-3 rounded-t-[40px] mb-[-1px]" style="background-color: ${color}">
-                        <h2 class="text-3xl font-mono uppercase font-black text-white drop-shadow-sm">${category}</h2>
+                    <div class="inline-block px-6 md:px-10 py-2 md:py-3 rounded-t-[30px] md:rounded-t-[40px] mb-[-1px]" style="background-color: ${color}">
+                        <h2 class="text-xl md:text-3xl font-mono uppercase font-black text-white drop-shadow-sm">${category}</h2>
                     </div>
-                    <div class="p-8 rounded-r-[60px] rounded-bl-[60px] shadow-sm relative" style="background-color: ${color}">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
+                    <div class="p-4 md:p-8 rounded-r-[40px] md:rounded-r-[60px] rounded-bl-[40px] md:rounded-bl-[60px] shadow-sm relative" style="background-color: ${color}">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 md:gap-8">
                             ${displayApps.map(app => `
-                                <div class="bg-white/80 backdrop-blur-sm rounded-[35px] p-8 text-center flex flex-col h-full relative border-2 border-transparent hover:border-white transition-all shadow-lg hover:shadow-2xl group">
+                                <div class="bg-white/80 backdrop-blur-sm rounded-[30px] md:rounded-[35px] p-6 md:p-8 text-center flex flex-col h-full relative border-2 border-transparent hover:border-white transition-all shadow-lg hover:shadow-2xl group">
                                     <div class="absolute top-5 right-5 cursor-pointer opacity-30 group-hover:opacity-100 transition-opacity" onclick="window.showDetails('${app.name}')">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 md:w-8 md:h-8">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                                         </svg>
                                     </div>
-                                    <div class="w-[120px] h-[120px] bg-black rounded-[28px] mx-auto mb-6 flex items-center justify-center overflow-hidden p-3 shadow-xl">
+                                    <div class="w-[100px] h-[100px] md:w-[120px] md:h-[120px] bg-black rounded-[20px] md:rounded-[28px] mx-auto mb-6 flex items-center justify-center overflow-hidden p-3 shadow-xl">
                                         <img src="${app.icon_link || 'https://picsum.photos/120/120'}" class="w-full h-full object-contain" />
                                     </div>
-                                    <h3 class="${app.title.length > 12 ? 'text-2xl' : 'text-3xl'} font-bold mb-2">${app.title}</h3>
-                                    <p class="text-xl mb-2 opacity-80 leading-tight h-12 overflow-hidden">${app.tagline || ''}</p>
-                                    <p class="text-lg italic mb-6 opacity-60 h-14 overflow-hidden">${app.replaces ? `Replaces: ${app.replaces}` : ''}</p>
+                                    <h3 class="${app.title.length > 12 ? 'text-xl md:text-2xl' : 'text-2xl md:text-3xl'} font-bold mb-2">${app.title}</h3>
+                                    <p class="text-lg md:text-xl mb-2 opacity-80 leading-tight h-10 md:h-12 overflow-hidden">${app.tagline || ''}</p>
+                                    <p class="text-base md:text-lg italic mb-6 opacity-60 h-12 md:h-14 overflow-hidden">${app.replaces ? `Replaces: ${app.replaces}` : ''}</p>
                                     
                                     <button 
                                         ${app.hasTemplate ? `onclick="window.toggleApp('${app.name}')"` : 'disabled'}
-                                        class="mt-auto w-full py-4 rounded-[22px] text-2xl font-bold border-[5px] transition-all duration-300 ${!app.hasTemplate ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed' : app.installed ? 'bg-black border-black text-white scale-[0.98] opacity-40 cursor-pointer' : 'bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl cursor-pointer'}"
+                                        class="mt-auto w-full py-3 md:py-4 rounded-[18px] md:rounded-[22px] text-xl md:text-2xl font-bold border-[4px] md:border-[5px] transition-all duration-300 ${!app.hasTemplate ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed' : app.installed ? 'bg-black border-black text-white scale-[0.98] opacity-40 cursor-pointer' : 'bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl cursor-pointer'}"
                                     >
                                         ${!app.hasTemplate ? 'TBA' : app.installed ? 'Added' : 'Add'}
                                     </button>
@@ -221,7 +221,7 @@ export async function renderAppsPage(filter = '') {
                         
                         ${hasMore ? `
                             <div class="flex justify-center mt-10">
-                                <button onclick="window.toggleSection('${category}')" class="bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl py-4 px-12 rounded-[22px] text-2xl font-bold border-[5px] transition-all duration-300 cursor-pointer">
+                                <button onclick="window.toggleSection('${category}')" class="bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl py-3 md:py-4 px-10 md:px-12 rounded-[18px] md:rounded-[22px] text-xl md:text-2xl font-bold border-[4px] md:border-[5px] transition-all duration-300 cursor-pointer">
                                     ${isExpanded ? 'Show Less' : 'Show More'}
                                 </button>
                             </div>

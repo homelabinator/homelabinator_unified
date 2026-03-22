@@ -18,6 +18,8 @@ import { currentPage } from './router';
 
 const API_URL = (process.env as any).ENV_NAME === 'prod' ? 'https://api.homelabinator.com' : 'https://beta-api.homelabinator.com';
 
+const isMobile = () => window.innerWidth < 768;
+
 (window as any).toggleSection = (category: string) => {
     if (expandedSections.has(category)) expandedSections.delete(category);
     else expandedSections.add(category);
@@ -31,6 +33,11 @@ const API_URL = (process.env as any).ENV_NAME === 'prod' ? 'https://api.homelabi
 };
 
 (window as any).toggleApp = async (name: string) => {
+    if (isMobile()) {
+        const modal = document.getElementById('mobile-warning-modal') as HTMLDialogElement;
+        modal?.showModal();
+        return;
+    }
     const app = await db.apps.get({ name });
     if (app && app.hasTemplate) {
         await appStore.setAppInstalled(name, !app.installed);
