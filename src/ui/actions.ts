@@ -99,8 +99,8 @@ const isMobile = () => window.innerWidth < 768;
     }
 };
 
-(window as any).downloadConfig = async () => {
-    const config = await appStore.generateConfig();
+(window as any).downloadConfig = async (type: 'snippet' | 'config' | 'vm' = 'snippet') => {
+    const config = await appStore.generateConfig(type);
     const blob = new Blob([config], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -113,31 +113,17 @@ const isMobile = () => window.innerWidth < 768;
     const isInstallPage = currentPage === 'install';
     
     if (!isInstallPage) {
-        console.log("Initiating build and navigating to install page...");
-        try {
-            const config = await appStore.generateConfig();
-            sessionStorage.setItem('homelabinator_config', config);
-            sessionStorage.setItem('homelabinator_auto_build', 'true');
-            setPage('install');
-        } catch (error) {
-            console.error("Error generating config:", error);
-        }
+        setPage('install');
         return;
     }
     
     // On Install Page
-    const config = sessionStorage.getItem('homelabinator_config');
+    const config = await appStore.generateConfig('snippet');
     const downloadBtn = document.getElementById('iso-btn') as HTMLButtonElement;
     const progressBar = document.getElementById('iso-progress') as HTMLProgressElement;
     
     if (!downloadBtn) {
         console.error("Download button not found.");
-        return;
-    }
-
-    if (!config) {
-        console.error("No config found in session storage.");
-        downloadBtn.innerHTML = "Error: No Config";
         return;
     }
 

@@ -1,0 +1,29 @@
+{ config, pkgs, ... }:
+
+{
+  virtualisation.diskSize = 16384;
+
+  users.users.homelab = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" ];
+    initialPassword = "test";
+  };
+
+  services.getty.autologinUser = "homelab";
+  security.sudo.wheelNeedsPassword = false;
+  networking.firewall.enable = false;
+
+  services.k3s.enable = true;
+  services.k3s.role = "server";
+  services.k3s.extraFlags = toString [
+    "--disable traefik"
+  ];
+
+  {{{apps}}}
+  {{{volumes}}}
+  {{{services}}}
+
+  {{{globalservices}}}
+
+  system.stateVersion = "25.11";
+}

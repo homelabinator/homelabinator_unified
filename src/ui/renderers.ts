@@ -327,7 +327,23 @@ export async function renderInstallPage() {
                     <img src="/assets/flash.svg" class="rounded-full"/>
                     <h1 class="mt-5 mb-5 text-2xl font-semibold">3. Flash</h1>
                     <p>Download the ISO file using the button below. Then, open Balena Etcher and select the downloaded ISO and your USB drive.</p>
-                    <button onclick="window.getDownloadLink()" id="iso-btn" class="action-btn btn btn-lg bg-[#0088ff] text-white border-none rounded-xl px-10 mt-5">Download</button>
+                    
+                    <div class="dropdown dropdown-top dropdown-end mt-5">
+                        <div class="flex">
+                            <button onclick="window.getDownloadLink()" id="iso-btn" class="action-btn btn btn-lg bg-[#0088ff] text-white border-none rounded-l-xl rounded-r-none px-10">Build ISO</button>
+                            <div tabindex="0" role="button" class="btn btn-lg bg-[#0066cc] text-white border-none rounded-r-xl rounded-l-none px-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                </svg>
+                            </div>
+                        </div>
+                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-64 border-2 border-black mb-2">
+                            <li><a onclick="window.downloadConfig('snippet')">Download Nix Snippet</a></li>
+                            <li><a onclick="window.downloadConfig('config')">Download Nix Config</a></li>
+                            <li><a onclick="window.downloadConfig('vm')">Download VM Testing Config</a></li>
+                        </ul>
+                    </div>
+                    
                     <progress id="iso-progress" class="progress progress-primary w-full mt-4 hidden" value="0" max="100"></progress>
                 </div>
                 <div class="bg-gray-100 p-6 flex flex-col items-center text-center">
@@ -339,11 +355,6 @@ export async function renderInstallPage() {
         </div>
     `;
     updateOverlay();
-
-    if (sessionStorage.getItem('homelabinator_auto_build') === 'true') {
-        sessionStorage.removeItem('homelabinator_auto_build');
-        (window as any).getDownloadLink();
-    }
 }
 
 export async function render() {

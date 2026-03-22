@@ -155,9 +155,9 @@ export class AppStore {
         await db.apps.update(name, { installed: installed ? 1 : 0 });
     }
 
-    async generateConfig(): Promise<string> {
+    async generateConfig(templateType: 'snippet' | 'config' | 'vm' = 'snippet'): Promise<string> {
         const installedApps = await db.apps.where('installed').equals(1).toArray();
-        const coreTemplate = await (await fetch('/templates/core/config.nix.hbs')).text();
+        const coreTemplate = await (await fetch(`/templates/core/${templateType}.nix.hbs`)).text();
         const allServices = await db.services.toArray();
         const allVolumes = await db.volumes.toArray();
 
