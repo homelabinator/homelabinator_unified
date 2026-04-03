@@ -171,9 +171,9 @@ export async function renderAppsPage(filter = '') {
         <div class="text-center py-10 md:py-20 px-5">
             <h1 class="text-[40px] md:text-[96px] font-bold m-0 leading-tight">Cancel your subscriptions. Own your apps.</h1>
             <br>
-            <p class="text-xl md:text-5xl font-light mt-2.5">Choose free alternatives to your favorite services and we’ll generate a custom, plug-and-play ISO.</p>
+            <p class="text-xl md:text-4xl font-light mt-2.5">Choose free alternatives to your favorite services and we’ll generate a custom, plug-and-play ISO.</p>
             <br>
-            <p class="text-l md:text-4xl font-light mt-2.5">Turn any old PC into a self-hosting machine in minutes.</p>
+            <p class="text-l md:text-4xl font-light mt-2.5">Turn any old computer into a self-hosting machine in minutes.</p>
         </div>
 
         <div class="max-w-[1600px] mx-auto px-8 mb-8 hidden md:flex justify-end">
