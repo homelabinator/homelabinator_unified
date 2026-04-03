@@ -165,6 +165,7 @@ export async function renderAppsPage(filter = '') {
     });
 
     const anyCanExpand = Object.values(categories).some(list => list.length > 5);
+    const isDev = (process.env as any).ENV_NAME === 'dev';
 
     appGrid.innerHTML = `
         <div class="text-center py-10 md:py-20 px-5">
@@ -176,7 +177,7 @@ export async function renderAppsPage(filter = '') {
         </div>
 
         <div class="max-w-[1600px] mx-auto px-8 mb-8 hidden md:flex justify-end">
-            ${anyCanExpand ? `
+            ${(anyCanExpand && isDev) ? `
                 <button onclick="window.toggleGlobalExpand()" class="bg-white border-[#0088ff] text-[#0088ff] hover:bg-[#0088ff] hover:text-white shadow-md hover:shadow-xl py-3 px-8 rounded-[22px] text-2xl font-bold border-[5px] transition-all duration-300 cursor-pointer">
                     ${globalExpanded ? 'Collapse All' : 'Expand All'}
                 </button>
