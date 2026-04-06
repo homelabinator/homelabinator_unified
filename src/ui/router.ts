@@ -1,4 +1,4 @@
-export type Page = 'apps' | 'services' | 'install' | 'about';
+export type Page = 'apps' | 'install' | 'about';
 
 export let currentPage: Page = 'apps';
 export let previousPage: Page = 'apps';
@@ -16,7 +16,6 @@ export function setCurrentPage(page: Page) {
 
 export function getPageFromUrl(): Page {
     const path = window.location.pathname;
-    if (path === '/services') return 'services';
     if (path === '/install') return 'install';
     if (path === '/about') return 'about';
     return 'apps';

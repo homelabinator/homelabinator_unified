@@ -20,6 +20,7 @@ export interface AppEntry {
     fields: { [key: string]: any };
     github_stars?: string;
     docker_downloads?: string;
+    type?: 'app' | 'service' | 'volume';
 }
 
 export interface ServiceEntry {
@@ -32,6 +33,7 @@ export interface ServiceEntry {
     template_config: string;
     fields_def: any[]; // Definition of fields
     fields: { [key: string]: any }; // Current values (for "Apply to All" or default)
+    type?: 'service';
 }
 
 export interface VolumeEntry {
@@ -44,19 +46,31 @@ export interface VolumeEntry {
     mount_config: string;
     fields_def: any[];
     fields: { [key: string]: any };
+    type?: 'volume';
+}
+
+export interface GlobalEntry {
+    name: string;
+    value: any;
+    label: string;
+    type: string;
+    placeholder?: string;
+    required?: boolean;
 }
 
 export class HomelabDatabase extends Dexie {
     apps!: Table<AppEntry>;
     services!: Table<ServiceEntry>;
     volumes!: Table<VolumeEntry>;
+    globals!: Table<GlobalEntry>;
 
     constructor() {
         super('HomelabDatabase_V3');
         this.version(1).stores({
             apps: '&name, category, installed',
             services: '++id, &name',
-            volumes: '++id, &name'
+            volumes: '++id, &name',
+            globals: '&name'
         });
     }
 }

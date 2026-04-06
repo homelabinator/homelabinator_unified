@@ -27,6 +27,17 @@ export class AppStore {
                 db.volumes.clear()
             ]);
 
+            // 0. Populate Globals
+            const existingGlobals = await db.globals.toArray();
+            if (existingGlobals.length === 0) {
+                await db.globals.bulkPut([
+                    { name: 'username', value: 'admin', label: 'Default Username', type: 'text', placeholder: 'e.g. admin' },
+                    { name: 'password', value: 'password', label: 'Default Password', type: 'password', placeholder: 'e.g. password' },
+                    { name: 'domain', value: 'local.homelabinator.com', label: 'Domain Name', type: 'text', placeholder: 'e.g. example.com' },
+                    { name: 'email', value: 'admin@example.com', label: 'Admin Email', type: 'text', placeholder: 'e.g. admin@example.com' }
+                ]);
+            }
+
             // 1. Populate Services
             const defaultServices: string[] = [];
             try {
@@ -57,7 +68,8 @@ export class AppStore {
                                 core_config: core, 
                                 template_config: tmpl, 
                                 fields: {},
-                                fields_def: s.fields
+                                fields_def: s.fields,
+                                type: 'service'
                             });
                         } catch (e) {
                             console.error(`Error loading service ${sId}:`, e);
@@ -96,7 +108,8 @@ export class AppStore {
                                 installed: 0,
                                 services: [...defaultServices],
                                 volumes: [],
-                                fields: {}
+                                fields: {},
+                                type: 'app'
                             });
                         } catch (e) {
                             console.error(`Error loading app ${appId}:`, e);
@@ -135,7 +148,8 @@ export class AppStore {
                                 template_config: tmpl, 
                                 mount_config: mount,
                                 fields: { path: '/var/lib/homelabinator' },
-                                fields_def: v.fields
+                                fields_def: v.fields,
+                                type: 'volume'
                             });
                         } catch (e) {
                             console.error(`Error loading volume ${vId}:`, e);
@@ -145,6 +159,7 @@ export class AppStore {
             } catch (e) {
                 console.error('Error loading volume manifest:', e);
             }
+
 
         } finally {
             this.isInitializing = false;
@@ -160,6 +175,11 @@ export class AppStore {
         const coreTemplate = await (await fetch(`/templates/core/${templateType}.nix.hbs`)).text();
         const allServices = await db.services.toArray();
         const allVolumes = await db.volumes.toArray();
+        const globals = await db.globals.toArray();
+        const globalFields = globals.reduce((acc, g) => {
+            acc[g.name] = g.value;
+            return acc;
+        }, {} as any);
 
         setGlobalVolumes(allVolumes);
         resetSession();
@@ -175,7 +195,7 @@ export class AppStore {
         for (const app of installedApps) {
             if (app.handlebars_config) {
                 const appTemplate = Handlebars.compile(app.handlebars_config);
-                appsConfig += appTemplate({ app }) + '\n';
+                appsConfig += appTemplate({ app, globals: globalFields }) + '\n';
             }
         }
 
@@ -191,7 +211,8 @@ export class AppStore {
                     const template = Handlebars.compile(s.template_config);
                     servicesList += template({ 
                         app: { name: app.name, port: appPort }, 
-                        fields: { ...s.fields, ...app.fields[sName] }
+                        fields: { ...s.fields, ...app.fields[sName] },
+                        globals: globalFields
                     }) + '\n';
                 }
             }
@@ -207,7 +228,7 @@ export class AppStore {
                 const v = allVolumes.find(x => x.name === vName);
                 if (v && v.template_config) {
                     const template = Handlebars.compile(v.template_config);
-                    const context = { app: { name: app.name }, fields: { ...v.fields, ...app.fields[vName] } };
+                    const context = { app: { name: app.name }, fields: { ...v.fields, ...app.fields[vName] }, globals: globalFields };
                     volumesList += template(context) + '\n';
                 }
             }
@@ -238,14 +259,14 @@ export class AppStore {
         for (const s of allServices) {
             if (usedServiceNames.has(s.name) && s.core_config && s.core_config.trim() !== '') {
                 const template = Handlebars.compile(s.core_config);
-                globalServicesConfig += template({ fields: s.fields, apps: installedApps }) + '\n';
+                globalServicesConfig += template({ fields: s.fields, apps: installedApps, globals: globalFields }) + '\n';
             }
         }
 
         for (const v of allVolumes) {
             if (usedVolumeNames.has(v.name) && v.core_config && v.core_config.trim() !== '') {
                 const template = Handlebars.compile(v.core_config);
-                globalServicesConfig += template({ fields: v.fields, apps: installedApps }) + '\n';
+                globalServicesConfig += template({ fields: v.fields, apps: installedApps, globals: globalFields }) + '\n';
             }
         }
 
@@ -253,7 +274,8 @@ export class AppStore {
             apps: appsConfig, 
             services: servicesConfig,
             volumes: volumesConfig,
-            globalservices: globalServicesConfig 
+            globalservices: globalServicesConfig,
+            globals: globalFields
         });
     }
 }
