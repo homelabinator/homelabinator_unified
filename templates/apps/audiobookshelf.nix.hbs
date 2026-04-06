@@ -1,0 +1,52 @@
+services.k3s.manifests.{{app.name}}.content = [
+  {
+    apiVersion = "apps/v1";
+    kind = "Deployment";
+    metadata = {
+      name = "{{app.name}}";
+      labels.app = "{{app.name}}";
+    };
+    spec = {
+      replicas = 1;
+      selector.matchLabels.app = "{{app.name}}";
+      template = {
+        metadata.labels.app = "{{app.name}}";
+        spec = {
+          containers = [
+            {
+              name = "{{app.name}}";
+              image = "ghcr.io/advplyr/audiobookshelf:latest";
+              env = [
+                { name = "TZ"; value = "America/Denver"; }
+              ];
+              ports = [
+                {{hook_port 80 "http"}}
+              ];
+              volumeMounts = [
+                {{hook_volume "audiobooks" "/audiobooks"}}
+                {{hook_volume "podcasts" "/podcasts"}}
+                {{hook_volume "config" "/config"}}
+                {{hook_volume "metadata" "/metadata"}}
+              ];
+            }
+          ];
+          volumes = [
+            {{hook_volumes_pod}}
+          ];
+          tolerations = [
+            {
+              key = "node-role.kubernetes.io/master";
+              operator = "Exists";
+              effect = "NoSchedule";
+            }
+            {
+              key = "node-role.kubernetes.io/control-plane";
+              operator = "Exists";
+              effect = "NoSchedule";
+            }
+          ];
+        };
+      };
+    };
+  }
+];

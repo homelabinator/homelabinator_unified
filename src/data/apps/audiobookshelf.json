@@ -16,5 +16,5 @@
   "docs_link": "https://www.audiobookshelf.org/docs/",
   "content": "Audiobookshelf is an open-source self-hosted media server for your audiobooks and podcasts.",
   "id": "audiobookshelf",
-  "hasTemplate": false
+  "hasTemplate": true
 }
