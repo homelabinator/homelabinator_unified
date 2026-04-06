@@ -1,0 +1,55 @@
+services.k3s.manifests.{{app.name}}.content = [
+  {
+    apiVersion = "apps/v1";
+    kind = "Deployment";
+    metadata = {
+      name = "{{app.name}}";
+      labels.app = "{{app.name}}";
+    };
+    spec = {
+      replicas = 1;
+      selector.matchLabels.app = "{{app.name}}";
+      template = {
+        metadata.labels.app = "{{app.name}}";
+        spec = {
+          containers = [
+            {
+              name = "{{app.name}}";
+              image = "registry.gitlab.com/crafty-controller/crafty-4:latest";
+              env = [
+                { name = "TZ"; value = "Etc/UTC"; }
+              ];
+              ports = [
+                {{hook_port 8443 "https"}}
+                {{hook_port 8123 "dynmap"}}
+                {{hook_port 19132 "bedrock"}}
+              ];
+              volumeMounts = [
+                {{hook_volume "backups" "/crafty/backups"}}
+                {{hook_volume "logs" "/crafty/logs"}}
+                {{hook_volume "servers" "/crafty/servers"}}
+                {{hook_volume "config" "/crafty/app/config"}}
+                {{hook_volume "import" "/crafty/import"}}
+              ];
+            }
+          ];
+          volumes = [
+            {{hook_volumes_pod}}
+          ];
+          tolerations = [
+            {
+              key = "node-role.kubernetes.io/master";
+              operator = "Exists";
+              effect = "NoSchedule";
+            }
+            {
+              key = "node-role.kubernetes.io/control-plane";
+              operator = "Exists";
+              effect = "NoSchedule";
+            }
+          ];
+        };
+      };
+    };
+  }
+];

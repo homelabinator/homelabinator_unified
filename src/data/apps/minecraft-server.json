@@ -5,15 +5,15 @@
   "category": "Entertainment",
   "replaces": "Minecraft Realms",
   "tagline": "Play with friends.",
-  "docs_link": "https://docs.papermc.io/",
+  "docs_link": "https://docs.craftycontrol.com/",
   "screenshots": [
-    "https://via.placeholder.com/800x600"
+    "https://www.maketecheasier.com/assets/uploads/2024/04/create-minecraft-server-controller-crafty-linux-04-crafty-login-screen.png"
   ],
   "icon_link": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/minecraft.svg",
-  "website": "https://papermc.io",
+  "website": "https://craftycontrol.com/",
   "docker_downloads": 100000000,
   "github_stars": 11900,
-  "content": "Paper is the most widely used, high performance Minecraft server that aims to fix gameplay and mechanics inconsistencies. Designed to greatly improve performance, it offers a blazing fast, rock-solid foundation for your multiplayer world with more advanced features and a robust API.",
+  "content": "Crafty Controller is a free and open-source Minecraft launcher and manager that allows users to start and administer Minecraft servers from a user-friendly interface. The interface is run as a self-hosted web server that is accessible to devices on the local network by default and can be port forwarded to provide external access outside of your local network.",
   "id": "minecraft-server",
-  "hasTemplate": false
+  "hasTemplate": true
 }

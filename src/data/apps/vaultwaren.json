@@ -7,13 +7,13 @@
   "tagline": "Always remember your passwords.",
   "docs_link": "https://github.com/dani-garcia/vaultwarden/wiki",
   "screenshots": [
-    "https://via.placeholder.com/800x600"
+    "https://www.addictivetips.com/app/uploads/2023/04/bitwarden-login-1024x614.jpg"
   ],
   "icon_link": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/vaultwarden-light.svg",
   "website": "https://github.com/dani-garcia/vaultwarden",
   "docker_downloads": 500000000,
-  "github_stars": 55800,
+  "github_stars": 58800,
   "content": "An alternative implementation of the Bitwarden server API, written in Rust and compatible with upstream Bitwarden clients, perfect for self-hosted deployment where running the official resource-heavy service might not be ideal.",
   "id": "vaultwaren",
-  "hasTemplate": false
+  "hasTemplate": true
 }
