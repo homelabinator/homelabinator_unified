@@ -22,20 +22,19 @@ export class AppStore {
         try {
             // Clear existing data to ensure we always have the latest from manifest/JSON files on refresh
             await Promise.all([
-                db.apps.clear(),
-                db.services.clear(),
-                db.volumes.clear()
+                db.registry.clear(),
+                db.globals.clear()
             ]);
 
             // 0. Populate Globals
-            const existingGlobals = await db.globals.toArray();
-            if (existingGlobals.length === 0) {
-                await db.globals.bulkPut([
-                    { name: 'username', value: 'admin', label: 'Default Username', type: 'text', placeholder: 'e.g. admin' },
-                    { name: 'password', value: 'password', label: 'Default Password', type: 'password', placeholder: 'e.g. password' },
-                    { name: 'domain', value: 'local.homelabinator.com', label: 'Domain Name', type: 'text', placeholder: 'e.g. example.com' },
-                    { name: 'email', value: 'admin@example.com', label: 'Admin Email', type: 'text', placeholder: 'e.g. admin@example.com' }
-                ]);
+            try {
+                const globalsResponse = await fetch('/src/data/globals.json');
+                if (globalsResponse.ok) {
+                    const globals = await globalsResponse.json();
+                    await db.globals.bulkPut(globals);
+                }
+            } catch (e) {
+                console.error('Error loading globals:', e);
             }
 
             // 1. Populate Services
@@ -63,7 +62,7 @@ export class AppStore {
                             } catch (e) {
                                 console.warn(`Could not load templates for service ${sId}:`, e);
                             }
-                            await db.services.put({ 
+                            await db.registry.put({ 
                                 ...s, 
                                 core_config: core, 
                                 template_config: tmpl, 
@@ -78,6 +77,47 @@ export class AppStore {
                 }
             } catch (e) {
                 console.error('Error loading service manifest:', e);
+            }
+
+            // 3. Populate Volumes
+            const defaultVolumes: string[] = ['hostPath'];
+            try {
+                const volumesResponse = await fetch('/src/data/volumes/manifest.json');
+                if (volumesResponse.ok) {
+                    const volumeIds = await volumesResponse.json();
+                    for (const vId of volumeIds) {
+                        try {
+                            const metaResponse = await fetch(`/src/data/volumes/${vId}.json`);
+                            if (!metaResponse.ok) throw new Error(`Failed to fetch volume meta for ${vId}`);
+                            const v = await metaResponse.json();
+
+                            let core = '', tmpl = '', mount = '';
+                            try {
+                                const coreResp = await fetch(`/templates/volumes/${v.name}/core.nix.hbs`);
+                                if (coreResp.ok) core = await coreResp.text();
+                                const tmplResp = await fetch(`/templates/volumes/${v.name}/template.nix.hbs`);
+                                if (tmplResp.ok) tmpl = await tmplResp.text();
+                                const mountResp = await fetch(`/templates/volumes/${v.name}/mount.nix.hbs`);
+                                if (mountResp.ok) mount = await mountResp.text();
+                            } catch (e) {
+                                console.warn(`Could not load templates for volume ${vId}:`, e);
+                            }
+                            await db.registry.put({ 
+                                ...v, 
+                                core_config: core, 
+                                template_config: tmpl, 
+                                mount_config: mount,
+                                fields: { path: '/var/lib/homelabinator' },
+                                fields_def: v.fields,
+                                type: 'volume'
+                            });
+                        } catch (e) {
+                            console.error(`Error loading volume ${vId}:`, e);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading volume manifest:', e);
             }
 
             // 2. Populate Apps
@@ -101,13 +141,13 @@ export class AppStore {
                                 }
                             }
 
-                            await db.apps.put({
+                            await db.registry.put({
                                 ...metaData,
                                 name: appId,
                                 handlebars_config: nixConfig,
                                 installed: 0,
                                 services: [...defaultServices],
-                                volumes: [],
+                                volumes: [...defaultVolumes],
                                 fields: {},
                                 type: 'app'
                             });
@@ -120,61 +160,20 @@ export class AppStore {
                 console.error('Error loading app manifest:', e);
             }
 
-            // 3. Populate Volumes
-            try {
-                const volumesResponse = await fetch('/src/data/volumes/manifest.json');
-                if (volumesResponse.ok) {
-                    const volumeIds = await volumesResponse.json();
-                    for (const vId of volumeIds) {
-                        try {
-                            const metaResponse = await fetch(`/src/data/volumes/${vId}.json`);
-                            if (!metaResponse.ok) throw new Error(`Failed to fetch volume meta for ${vId}`);
-                            const v = await metaResponse.json();
-
-                            let core = '', tmpl = '', mount = '';
-                            try {
-                                const coreResp = await fetch(`/templates/volumes/${v.name}/core.nix.hbs`);
-                                if (coreResp.ok) core = await coreResp.text();
-                                const tmplResp = await fetch(`/templates/volumes/${v.name}/template.nix.hbs`);
-                                if (tmplResp.ok) tmpl = await tmplResp.text();
-                                const mountResp = await fetch(`/templates/volumes/${v.name}/mount.nix.hbs`);
-                                if (mountResp.ok) mount = await mountResp.text();
-                            } catch (e) {
-                                console.warn(`Could not load templates for volume ${vId}:`, e);
-                            }
-                            await db.volumes.put({ 
-                                ...v, 
-                                core_config: core, 
-                                template_config: tmpl, 
-                                mount_config: mount,
-                                fields: { path: '/var/lib/homelabinator' },
-                                fields_def: v.fields,
-                                type: 'volume'
-                            });
-                        } catch (e) {
-                            console.error(`Error loading volume ${vId}:`, e);
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('Error loading volume manifest:', e);
-            }
-
-
         } finally {
             this.isInitializing = false;
         }
     }
 
     async setAppInstalled(name: string, installed: boolean) {
-        await db.apps.update(name, { installed: installed ? 1 : 0 });
+        await db.registry.where('name').equals(name).modify({ installed: installed ? 1 : 0 });
     }
 
     async generateConfig(templateType: 'snippet' | 'config' | 'vm' = 'snippet'): Promise<string> {
-        const installedApps = await db.apps.where('installed').equals(1).toArray();
+        const installedApps = await db.registry.where('type').equals('app').and(x => x.installed === 1).toArray();
         const coreTemplate = await (await fetch(`/templates/core/${templateType}.nix.hbs`)).text();
-        const allServices = await db.services.toArray();
-        const allVolumes = await db.volumes.toArray();
+        const allServices = await db.registry.where('type').equals('service').toArray();
+        const allVolumes = await db.registry.where('type').equals('volume').toArray();
         const globals = await db.globals.toArray();
         const globalFields = globals.reduce((acc, g) => {
             acc[g.name] = g.value;
@@ -204,11 +203,11 @@ export class AppStore {
             const ports = sessionPorts[app.name] || [];
             const appPort = ports[0]?.port || 8080;
 
-            for (const sName of app.services) {
+            for (const sName of app.services!) {
                 const s = allServices.find(x => x.name === sName);
                 if (s) {
                     usedServiceNames.add(sName);
-                    const template = Handlebars.compile(s.template_config);
+                    const template = Handlebars.compile(s.template_config!);
                     servicesList += template({ 
                         app: { name: app.name, port: appPort }, 
                         fields: { ...s.fields, ...app.fields[sName] },
@@ -221,7 +220,7 @@ export class AppStore {
                 usedVolumeNames.add('hostPath');
             }
 
-            const appVolumes = app.volumes.length > 0 ? app.volumes : allVolumes.map(v => v.name);
+            const appVolumes = app.volumes!.length > 0 ? app.volumes! : allVolumes.map(v => v.name);
             for (const vName of appVolumes) {
                 usedVolumeNames.add(vName);
                 if (vName === 'hostPath') continue;

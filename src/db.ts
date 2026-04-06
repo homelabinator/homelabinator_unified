@@ -1,11 +1,14 @@
 import Dexie, { type Table } from 'dexie';
 
-export interface AppEntry {
+export interface RegistryEntry {
     id?: number;
     name: string; // slug
     title: string;
-    handlebars_config: string;
-    installed: number;
+    type: 'app' | 'service' | 'volume';
+    
+    // App specific
+    handlebars_config?: string;
+    installed?: number;
     category?: string;
     replaces?: string;
     tagline?: string;
@@ -13,40 +16,23 @@ export interface AppEntry {
     screenshots?: string[];
     icon_link?: string;
     website?: string;
-    content: string;
-    hasTemplate: boolean;
-    services: string[]; // List of service names applied
-    volumes: string[];   // List of volume names applied
-    fields: { [key: string]: any };
+    content?: string;
+    hasTemplate?: boolean;
+    services?: string[]; // List of service names applied
+    volumes?: string[];   // List of volume names applied
     github_stars?: string;
     docker_downloads?: string;
-    type?: 'app' | 'service' | 'volume';
-}
 
-export interface ServiceEntry {
-    id?: number;
-    name: string;
-    title: string;
-    description: string;
+    // Service/Volume specific
+    description?: string;
     onByDefault?: boolean;
-    core_config: string;
-    template_config: string;
-    fields_def: any[]; // Definition of fields
-    fields: { [key: string]: any }; // Current values (for "Apply to All" or default)
-    type?: 'service';
-}
+    core_config?: string;
+    template_config?: string;
+    mount_config?: string;
+    fields_def?: any[]; 
 
-export interface VolumeEntry {
-    id?: number;
-    name: string;
-    title: string;
-    description: string;
-    core_config: string;
-    template_config: string;
-    mount_config: string;
-    fields_def: any[];
+    // Common
     fields: { [key: string]: any };
-    type?: 'volume';
 }
 
 export interface GlobalEntry {
@@ -59,17 +45,13 @@ export interface GlobalEntry {
 }
 
 export class HomelabDatabase extends Dexie {
-    apps!: Table<AppEntry>;
-    services!: Table<ServiceEntry>;
-    volumes!: Table<VolumeEntry>;
+    registry!: Table<RegistryEntry>;
     globals!: Table<GlobalEntry>;
 
     constructor() {
-        super('HomelabDatabase_V3');
+        super('HomelabDatabase_V4');
         this.version(1).stores({
-            apps: '&name, category, installed',
-            services: '++id, &name',
-            volumes: '++id, &name',
+            registry: '++id, &name, type, category, installed',
             globals: '&name'
         });
     }

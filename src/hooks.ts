@@ -1,18 +1,18 @@
 import Handlebars from 'handlebars';
-import { type VolumeEntry } from './db';
+import { type RegistryEntry } from './db';
 
 // --- Session State for Hooks ---
 
 export let sessionPorts: Record<string, any[]> = {};
 export let sessionVolumes: Record<string, any[]> = {};
-export let globalAllVolumes: VolumeEntry[] = [];
+export let globalAllVolumes: RegistryEntry[] = [];
 
 export function resetSession() {
     sessionPorts = {};
     sessionVolumes = {};
 }
 
-export function setGlobalVolumes(volumes: VolumeEntry[]) {
+export function setGlobalVolumes(volumes: RegistryEntry[]) {
     globalAllVolumes = volumes;
 }
 

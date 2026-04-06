@@ -1,0 +1,6 @@
+[
+    { "name": "username", "value": "homelab", "label": "Default Username", "type": "text", "placeholder": "e.g. homelab", "required": true },
+    { "name": "password", "value": "homelab", "label": "Default Password", "type": "password", "placeholder": "e.g. homelab", "required": true },
+    { "name": "domain", "value": "local.homelabinator.com", "label": "Domain Name", "type": "text", "placeholder": "e.g. example.com", "required": true },
+    { "name": "email", "value": "admin@example.com", "label": "Admin Email", "type": "text", "placeholder": "e.g. admin@example.com", "required": true }
+]
