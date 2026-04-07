@@ -1,7 +1,7 @@
 import { db } from '../../db';
 import { currentPage, setCurrentPage, previousPage } from '../router';
 import { renderAppsPage } from './apps';
-import { renderInstallPage } from './install';
+import { renderInstallPage, resetInstallStep, getInstallStep } from './install';
 import { renderAboutPage } from './about';
 
 export let expandedSections: Set<string> = new Set();
@@ -47,7 +47,18 @@ export function updateOverlay() {
             else nextBtn?.classList.add('hidden');
             if(btnVal) btnVal.textContent = "Build ISO";
         });
-    } else if (currentPage === 'install' || currentPage === 'about') {
+    } else if (currentPage === 'install') {
+        searchContainer?.classList.add('hidden');
+        backBtn?.classList.remove('hidden');
+        
+        const step = getInstallStep();
+        if (step < 3) {
+            nextBtn?.classList.remove('hidden');
+            if (btnVal) btnVal.textContent = "Next";
+        } else {
+            nextBtn?.classList.add('hidden');
+        }
+    } else if (currentPage === 'about') {
         searchContainer?.classList.add('hidden');
         backBtn?.classList.remove('hidden');
         nextBtn?.classList.add('hidden');
@@ -61,6 +72,9 @@ export async function render() {
 }
 
 export function setPage(page: any) {
+    if (page === 'install' && currentPage !== 'install') {
+        resetInstallStep();
+    }
     setCurrentPage(page);
     render();
     window.scrollTo(0, 0);

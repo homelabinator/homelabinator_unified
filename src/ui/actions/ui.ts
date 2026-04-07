@@ -8,6 +8,7 @@ import {
     resetExpandedSections
 } from '../renderers/common';
 import { currentPage, previousPage } from '../router';
+import { nextInstallStep, prevInstallStep, getInstallStep } from '../renderers/install';
 
 (window as any).setPage = setPage;
 
@@ -59,12 +60,20 @@ export async function navigateNext() {
         }
 
         setPage('install');
+    } else if (currentPage === 'install') {
+        nextInstallStep();
     }
 }
 
 export function navigateBack() {
     if (currentPage === 'about') setPage(previousPage);
-    else if (currentPage === 'install') setPage('apps');
+    else if (currentPage === 'install') {
+        if (getInstallStep() > 0) {
+            prevInstallStep();
+        } else {
+            setPage('apps');
+        }
+    }
 }
 
 (window as any).navigateNext = navigateNext;
