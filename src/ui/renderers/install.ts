@@ -65,7 +65,24 @@ const steps = [
     {
         title: "Boot",
         icon: "/assets/retrocomputer.png",
-        content: `Eject the USB (it is ok if your USB drive is not recognized by your computer) and plug it into the <strong>old</strong> computer. Turn it on and press the key to get into the Boot Menu (typically F12, F2, or Delete).`
+        content: `
+            Eject the USB (it is ok if your USB drive is not recognized by your computer) and plug it into the <strong>old</strong> computer. Turn it on and press the key to get into the Boot Menu (typically F12, F2, or Delete).
+            
+            <div class="flex flex-col gap-8 mt-10 text-left w-full">
+                <div class="flex flex-col gap-3">
+                    <span class="text-2xl font-bold">1. Boot from the USB</span>
+                    <p class="text-lg opacity-80 leading-snug">Select your USB drive from the boot menu to start the environment.</p>
+                    <div class="w-full bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200">
+                        <img src="/assets/usb-boot.png" class="h-48 w-full object-contain p-2" />
+                    </div>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <span class="text-2xl font-bold">2. Run the command 'sudo nixos-wizard'</span>
+                    <p class="text-lg opacity-80 leading-snug">This starts the installation wizard, follow the directions to install for your system.</p>
+                        <img src="/assets/installer.png" class="w-full p-2" />
+                </div>
+            </div>
+        `
     }
 ];
 
@@ -97,9 +114,9 @@ export async function renderInstallPage() {
                         <img src="${currentStep.icon}" class="w-16 h-16 object-contain"/>
                     </div>
                     <h2 class="text-4xl font-bold mb-6">${currentInstallStep + 1}. ${currentStep.title}</h2>
-                    <p class="text-xl leading-relaxed mb-8 max-w-lg">
+                    <div class="text-xl leading-relaxed mb-8 max-w-lg">
                         ${currentStep.content}
-                    </p>
+                    </div>
                     ${currentStep.action || ''}
                 </div>
             </div>
