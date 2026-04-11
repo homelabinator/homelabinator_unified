@@ -125,7 +125,6 @@ export async function renderAppsPage(filter = '') {
                 </div>
                 `;
             }).join('')}
-            <a href="https://www.producthunt.com/products/homelabinator?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-homelabinator" target="_blank" rel="noopener noreferrer"><img alt="Homelabinator - Cancel your subscriptions. Own your apps. | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1118946&amp;theme=light&amp;t=1775660952625"></a>
         </div>
     `;
     updateOverlay();
